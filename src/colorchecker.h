@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COLORCHECKER_H
+#define COLORCHECKER_H
 
 #include "colorspace.h"
 //#include "utils.h"
@@ -39,3 +40,5 @@ public:
 	Mat color_mask;
 	ColorCheckerMetric(ColorChecker colorchecker, char colorspace, IO io);
 };
+
+#endif
