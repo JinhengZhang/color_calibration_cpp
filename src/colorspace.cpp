@@ -2,43 +2,12 @@
 #include<cmath>
 //#include "utils.h"
 #include "IO.h"
+#include "colorspace.h"
 #include "opencv2\opencv.hpp"
 #include "opencv2\core\core.hpp"
 
 using namespace std;
 using namespace cv;
-
-class RGB_Base
-{
-public:
-    float xr;
-    float yr;
-    float xg; 
-    float yg;
-    float xb;
-    float yb;
-    IO io_base;
-    float gamma;
-    Mat _M_RGBL2XYZ_base;
-    map<IO, Mat*> _M_RGBL2XYZ;
-    IO _default_io;
-
-    RGB_Base();
-
-    Mat cal_M_RGBL2XYZ_base();
-    Mat M_RGBL2XYZ_base();
-    IO choose_io(IO io);
-    void set_default(IO io);
-    Mat M_RGBL2XYZ(IO io, bool rev);
-    Mat rgbl2xyz(Mat rgbl, IO io);
-    Mat xyz2rgbl(Mat xyz, IO io);
-    Mat rgb2rgbl(Mat rgb);
-    Mat rgbl2rgb(Mat rgbl);
-    Mat rgb2xyz(Mat rgb, IO io);
-    Mat xyz2rgb(Mat xyz, IO io);
-    Mat rgbl2lab(Mat rgbl, IO io);
-    Mat rgb2lab(Mat rgb, IO io);
-};
 
 RGB_Base::RGB_Base() {
     xr = 0.6400;
@@ -65,7 +34,7 @@ Mat RGB_Base::cal_M_RGBL2XYZ_base() {
     XYZ_rgbl.push_back(XYZg);
     XYZ_rgbl.push_back(XYZb);
     XYZ_rgbl = XYZ_rgbl.t();
-    Mat S = XYZ_rgbl.inv() * XYZw; 
+    Mat S = XYZ_rgbl.inv() * XYZw;
     double Sr = S[0];
     double Sg = S[1];
     double Sb = S[2];
@@ -77,7 +46,7 @@ Mat RGB_Base::cal_M_RGBL2XYZ_base() {
 }
 
 Mat RGB_Base::M_RGBL2XYZ_base() {
-    if (_M_RGBL2XYZ_base){
+    if (_M_RGBL2XYZ_base) {
         return _M_RGBL2XYZ_base;
     }
     return cal_M_RGBL2XYZ_base();
@@ -92,10 +61,10 @@ void RGB_Base::set_default(IO io) {
 
 Mat RGB_Base::M_RGBL2XYZ(IO io = NULL, bool rev = false) {
     io = choose_io(io);
-    if (io in _M_RGBL2XYZ){
+    if (io in _M_RGBL2XYZ) {
         return _M_RGBL2XYZ[io][rev ? 1 : 0];
     }
-    if (io == io_base){
+    if (io == io_base) {
         _M_RGBL2XYZ[io] = (M_RGBL2XYZ_base(), M_RGBL2XYZ_base().inv());
         return _M_RGBL2XYZ[io][rev ? 1 : 0];
     }
@@ -178,18 +147,18 @@ float sRGB_Base::K0() {
 
 
 float  sRGB_Base::_rgb2rgbl_ele(float x) {
-    if (x > K0){ 
+    if (x > K0) {
         return pow(((x + alpha - 1) / alpha), gamma);
     }
-    
+
     else if (x >= -K0) {
         return x / phi;
-        }
-        
+    }
+
     else {
         return -(pow(((-x + alpha - 1) / alpha), gamma));
     }
-    
+
 }
 Mat  sRGB_Base::rgb2rgbl(Mat rgb) {
     int height = rgb.rows;
@@ -267,7 +236,7 @@ class WideGamutRGB : public RGB_Base {
         xb = 0.1566;
         yb = 0.0177;
         io_base = D50_2;
-}
+    }
 };
 
 class ProPhotoRGB : public RGB_Base {
