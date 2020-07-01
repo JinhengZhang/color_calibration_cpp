@@ -1,6 +1,6 @@
 #include<iostream>
 #include<cmath>
-#include "utils.h"
+//#include "utils.h"
 #include "colorspace.h"
 #include "colorchecker.h"
 #include "opencv2\opencv.hpp"
@@ -216,7 +216,9 @@ void CCM_3x3::calculate(void) {
 
 void CCM_3x3::value(int number) {
     cout << "error:" << error << endl;
-    //rand = np.random.random((number, 3));
+    RNG rng;
+    Mat_<float>rand(number, 3);
+    rng.fill(rand, RNG::UNIFORM, 0, 1);
     mask = saturate(infer(rand), 0, 1);
     sat = sum(mask) / number;
     cout << "sat:" << sat << endl;
@@ -294,7 +296,9 @@ Mat CCM_4x3::infer(Mat img, bool L) {
 
 void CCM_4x3::value(int number) {
     cout << "error:" << error << endl;
-    //rand = np.random.random((number, 3));
+    RNG rng;
+    Mat_<float>rand(number, 3);
+    rng.fill(rand, RNG::UNIFORM, 0, 1);
     mask = saturate(infer(rand), 0, 1);
     sat = sum(mask) / number;
     cout << "sat:" << sat << endl;
