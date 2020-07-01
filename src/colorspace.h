@@ -1,7 +1,7 @@
 #ifndef COLORSPACE_H
 #define COLORSPACE_H
 
-#include "IO.h"
+#include "utils.h"
 
 using namespace std;
 using namespace cv;
@@ -18,7 +18,7 @@ public:
     IO io_base;
     float gamma;
     Mat _M_RGBL2XYZ_base;
-    map<IO, Mat*> _M_RGBL2XYZ;
+    map<IO, vector<Mat>> _M_RGBL2XYZ;
     IO _default_io;
 
     RGB_Base();
@@ -38,18 +38,126 @@ public:
     Mat rgb2lab(Mat rgb, IO io);
 };
 
-RGB_Base::RGB_Base(void) {
-    xr = 0.6400;
-    yr = 0.3300;
-    xg = 0.21;
-    yg = 0.71;
-    xb = 0.1500;
-    yb = 0.0600;
-    io_base = IO("D65", 2);
-    gamma = 2.2;
-    _M_RGBL2XYZ_base = NULL;
-    _M_RGBL2XYZ = {};
-    _default_io = IO("D65", 2);
-}
+
+class sRGB_Base : public RGB_Base
+{
+public:
+    float xr;
+    float yr;
+    float xg;
+    float yg;
+    float xb;
+    float yb;
+    float alpha;
+    float beta;
+    float phi;
+    float gamma;
+    float _K0;
+
+    sRGB_Base();
+
+    float K0();
+    float _rgb2rgbl_ele(float x);
+    Mat rgb2rgbl(Mat rgb);
+    float _rgbl2rgb_ele(float x);
+    Mat rgbl2rgb(Mat rgbl);
+
+};
+
+
+
+class sRGB : public sRGB_Base
+{
+    Mat _M_RGBL2XYZ_base;
+    sRGB() : sRGB_Base() {
+        Mat _M_RGBL2XYZ_base = (Mat_<double>(3, 3) <<
+            0.41239080, 0.35758434, 0.18048079,
+            0.21263901, 0.71516868, 0.07219232,
+            0.01933082, 0.11919478, 0.95053215);
+    }
+};
+
+class AdobeRGB : public RGB_Base {
+
+};
+
+class WideGamutRGB : public RGB_Base {
+    WideGamutRGB() : RGB_Base() {
+        xr = 0.7347;
+        yr = 0.2653;
+        xg = 0.1152;
+        yg = 0.8264;
+        xb = 0.1566;
+        yb = 0.0177;
+        io_base = IO("D65", 2);
+    }
+};
+
+class ProPhotoRGB : public RGB_Base {
+    ProPhotoRGB() : RGB_Base() {
+        xr = 0.734699;
+        yr = 0.265301;
+        xg = 0.159597;
+        yg = 0.820403;
+        xb = 0.036598;
+        yb = 0.000105;
+        io_base = IO("D65", 2);
+    }
+};
+
+class DCI_P3_RGB : public RGB_Base {
+    DCI_P3_RGB() : RGB_Base() {
+        xr = 0.680;
+        yr = 0.32;
+        xg = 0.265;
+        yg = 0.69;
+        xb = 0.15;
+        yb = 0.06;
+    }
+};
+
+class AppleRGB : public RGB_Base {
+    AppleRGB() : RGB_Base() {
+        xr = 0.626;
+        yr = 0.34;
+        xg = 0.28;
+        yg = 0.595;
+        xb = 0.155;
+        yb = 0.07;
+        gamma = 1.8;
+    }
+};
+
+class REC_709_RGB : public sRGB_Base {
+    REC_709_RGB() : sRGB_Base() {
+        xr = 0.64;
+        yr = 0.33;
+        xg = 0.3;
+        yg = 0.6;
+        xb = 0.15;
+        yb = 0.06;
+        alpha = 1.099;
+        beta = 0.018;
+        phi = 4.5;
+        gamma = 1 / 0.45;
+    }
+};
+
+class REC_2020_RGB : public sRGB_Base {
+    REC_2020_RGB() : sRGB_Base() {
+        xr = 0.708;
+        yr = 0.292;
+        xg = 0.17;
+        yg = 0.797;
+        xb = 0.131;
+        yb = 0.046;
+        alpha = 1.09929682680944;
+        beta = 0.018053968510807;
+        phi = 4.5;
+        gamma = 1 / 0.45;
+    }
+};
+
+
 
 #endif
