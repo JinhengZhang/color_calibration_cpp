@@ -1,76 +1,22 @@
-#include<iostream>
-#include<cmath>
-#include "utils.h"
-#include "colorspace.h"
-#include "colorchecker.h"
-#include "opencv2\opencv.hpp"
-#include "opencv2\core\core.hpp"
-
-using namespace std;
-using namespace cv;
-
-
-class Linear
-{
-public:
-    Linear(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) {}
-    void calc(void);
-    Mat linearize(Mat inp);
-    void value(void);
-};
-
-void Linear::calc(void)
-{
-}
+#include "linearize.h"
 
 Mat Linear::linearize(Mat inp)
 {
     return inp;
 }
 
-void Linear::value(void)
+Linear_gamma::Linear_gamma(float gamma_, int deg, Mat src, ColorCheckerMetric cc, double* saturated_threshold)
 {
+    gamma = gamma_;
+}
+
+Mat Linear_gamma::linearize(Mat inp) {
+    return gamma_correction(inp, gamma);
 }
 
 
 
-class Linear_identity : public Linear
-{
-public:
-    Linear_identity(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) : Linear(gamma, deg, src, cc, saturated_threshold) {}
-};
-
-
-
-class Linear_gamma : public Linear
-{
-public:
-    float gamma_;
-    Linear_gamma(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) : Linear(gamma, deg, src, cc, saturated_threshold) 
-    {
-        gamma_ = gamma;
-    }
-    Mat linearize(Mat inp)
-    {
-        return gamma_correction(inp, gamma_);
-    }
-};
-
-
-
-class Linear_color_polyfit : public Linear
-{
-public:
-    int deg;
-
-    vector<bool> mask;
-    Mat src;
-    Mat dst;
-    Linear_color_polyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) : Linear(gamma, deg, src, cc, saturated_threshold) {}
-
-};
-
-Linear_color_polyfit::Linear_color_polyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) {
+Linear_color_polyfit::Linear_color_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, double* saturated_threshold) {
     mask = saturate(src, saturated_threshold);
     Mat src_;
     Mat dst_;
@@ -110,7 +56,7 @@ Mat Linear_color_polyfit::linearize(Mat inp)
     Mat r = inp.rowRange(0, 1).clone();
     Mat g = inp.rowRange(1, 2).clone();
     Mat b = inp.rowRange(2, 3).clone();
-    
+
     Mat prr = poly1d(r, pr, deg);
     Mat pgg = poly1d(g, pg, deg);
     Mat pbb = poly1d(b, pb, deg);
@@ -122,18 +68,7 @@ Mat Linear_color_polyfit::linearize(Mat inp)
 }
 
 
-class Linear_color_logpolyfit : public Linear
-{
-public:
-    int deg;
-    bool mask;
-    Mat src;
-    Mat dst;
-    Linear_color_logpolyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) : Linear(gamma, deg, src, cc, saturated_threshold) {}
-
-};
-
-Linear_color_logpolyfit::Linear_color_logpolyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) {
+Linear_color_logpolyfit::Linear_color_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, double* saturated_threshold) {
     mask = saturate(src, saturated_threshold);
     Mat src_;
     Mat dst_;
@@ -158,45 +93,33 @@ void Linear_color_logpolyfit::calc(void)
     Mat rd = dst.rowRange(0, 1).clone();
     Mat gd = dst.rowRange(1, 2).clone();
     Mat bd = dst.rowRange(2, 3).clone();
-/*
-    def _polyfit(s, d, deg) :
-        mask = (s > 0) & (d > 0)
-        s = s[mask]
-        d = d[mask]
-        p = np.polyfit(np.log(s), np.log(d), deg)
-        return np.poly1d(p)
+    /*
+        def _polyfit(s, d, deg) :
+            mask = (s > 0) & (d > 0)
+            s = s[mask]
+            d = d[mask]
+            p = np.polyfit(np.log(s), np.log(d), deg)
+            return np.poly1d(p)
 
-        self.pr, self.pg, self.pb = _polyfit(rs, rd, self.deg), _polyfit(gs, gd, self.deg), _polyfit(bs, bd, self.deg)
-*/
+            self.pr, self.pg, self.pb = _polyfit(rs, rd, self.deg), _polyfit(gs, gd, self.deg), _polyfit(bs, bd, self.deg)
+    */
 }
 
 Mat Linear_color_logpolyfit::linearize(Mat inp)
 {
-/*  def _lin(p, x) :
-        mask = x > 0
-        y = x.copy()
-        y[mask] = np.exp(p(np.log(x[mask])))
-        y[~mask] = 0
-        return y
-        r, g, b = inp[..., 0], inp[..., 1], inp[..., 2]
-        return np.stack([_lin(self.pr, r), _lin(self.pg, g), _lin(self.pb, b)], axis = -1)
-*/
+    /*  def _lin(p, x) :
+            mask = x > 0
+            y = x.copy()
+            y[mask] = np.exp(p(np.log(x[mask])))
+            y[~mask] = 0
+            return y
+            r, g, b = inp[..., 0], inp[..., 1], inp[..., 2]
+            return np.stack([_lin(self.pr, r), _lin(self.pg, g), _lin(self.pb, b)], axis = -1)
+    */
 }
 
 
-class Linear_gray_polyfit : public Linear
-{
-public:
-    int deg;
-
-    bool mask;
-    Mat src;
-    Mat dst;
-    Linear_gray_polyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) : Linear(gamma, deg, src, cc, saturated_threshold) {}
-
-};
-
-Linear_gray_polyfit::Linear_gray_polyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) {
+Linear_gray_polyfit::Linear_gray_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, double* saturated_threshold) {
     mask = saturate(src, saturated_threshold) & cc.white_mask;
     Mat src_;
     Mat dst_;
@@ -226,31 +149,6 @@ Mat Linear_gray_polyfit::linearize(Mat inp)
 }
 
 
-class Linear_gray_logpolyfit : public Linear
-{
-public:
-    int deg;
-
-    bool mask;
-    Mat src;
-    Mat dst;
-    Linear_gray_logpolyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) : Linear(gamma, deg, src, cc, saturated_threshold) {}
-
-    Mat mask = saturate(src, saturated_threshold) & cc.white_mask;
-    Mat src_;
-    Mat dst_;
-    for (int i = 0; i < src.rows; i++)
-    {
-        if (mask[i] == true)
-        {
-            src_.push_back(src.row(i));
-            dst_.push_back(cc.grayl.row(i));
-        }
-    }
-    src = rgb2gray(src_.clone());
-    dst = dst_.clone();
-};
-
 Linear_gray_logpolyfit::Linear_gray_logpolyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) {
     mask = saturate(src, saturated_threshold) & cc.white_mask;
     Mat src_;
@@ -278,6 +176,7 @@ Mat Linear_gray_logpolyfit::linearize(Mat inp)
     //return _lin(p, inp);
 }
 
+
 Mat _polyfit(Mat src, Mat dst, int deg) {
     mask = (src > 0) & (dst > 0);
     Mat src_;
@@ -295,7 +194,7 @@ Mat _polyfit(Mat src, Mat dst, int deg) {
     log(src_, s);
     log(dst_, d);
     Mat res = polyfit(s, d, deg);
-    return res; 
+    return res;
 }
 
 Mat _lin(Mat p, Mat x) {
@@ -343,3 +242,4 @@ Mat poly1d(Mat src, Mat w, int deg) {
     }
     return src;
 }
+
