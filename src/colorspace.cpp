@@ -1,70 +1,58 @@
 #include<iostream>
 #include<cmath>
-//#include "utils.h"
-#include "IO.h"
 #include "colorspace.h"
-#include "opencv2\opencv.hpp"
-#include "opencv2\core\core.hpp"
 
-using namespace std;
-using namespace cv;
 
-RGB_Base::RGB_Base() {
-    xr = 0.6400;
-    yr = 0.3300;
-    xg = 0.21;
-    yg = 0.71;
-    xb = 0.1500;
-    yb = 0.0600;
-    io_base = IO("D65", 2);
-    gamma = 2.2;
-    _M_RGBL2XYZ_base = NULL;
-    _M_RGBL2XYZ = {};
-    _default_io = IO("D65", 2);
-}
 
 Mat RGB_Base::cal_M_RGBL2XYZ_base() {
-    vector<double> XYZr = xyY2XYZ(xr, yr);
-    vector<double> XYZg = xyY2XYZ(xg, yg);
-    vector<double> XYZb = xyY2XYZ(xb, yb);
+    Mat XYZr = Mat(xyY2XYZ(xr, yr)), XYZg = Mat(xyY2XYZ(xg, yg)), XYZb = Mat(xyY2XYZ(xb, yb));
     map <IO, vector<double>> illuminants = get_illuminant();
-    vector<double> XYZw = illuminants[io_base];
+    Mat XYZw = Mat(illuminants[io_base]);
     Mat XYZ_rgbl;
     XYZ_rgbl.push_back(XYZr);
     XYZ_rgbl.push_back(XYZg);
     XYZ_rgbl.push_back(XYZb);
     XYZ_rgbl = XYZ_rgbl.t();
     Mat S = XYZ_rgbl.inv() * XYZw;
-    double Sr = S[0];
-    double Sg = S[1];
-    double Sb = S[2];
+    Mat Sr = S.rowRange(0, 1).clone();
+    Mat Sg = S.rowRange(1, 2).clone();
+    Mat Sb = S.rowRange(2, 3).clone();
     _M_RGBL2XYZ_base.push_back(Sr * XYZr);
     _M_RGBL2XYZ_base.push_back(Sg * XYZg);
     _M_RGBL2XYZ_base.push_back(Sb * XYZb);
-    _M_RGBL2XYZ_base = _M_RGBL2XYZ_base.t();
+    _M_RGBL2XYZ_base.t();
     return _M_RGBL2XYZ_base;
+}
+void main() {
+    RGB_Base r;
+    Mat rr = r.cal_M_RGBL2XYZ_base();
+    cout << rr << endl;
 }
 
 Mat RGB_Base::M_RGBL2XYZ_base() {
-    if (_M_RGBL2XYZ_base) {
+    if (_M_RGBL2XYZ_base.empty()) {
         return _M_RGBL2XYZ_base;
     }
     return cal_M_RGBL2XYZ_base();
 }
 
-IO RGB_Base::choose_io(IO io = NULL) {
-    return io or _default_io;
+IO RGB_Base::choose_io(IO io) {
+    if (io.m_illuminant.length() != 0) {
+        return io;
+    }
+    return _default_io;
 }
+
 void RGB_Base::set_default(IO io) {
     _default_io = io;
 }
 
-Mat RGB_Base::M_RGBL2XYZ(IO io = NULL, bool rev = false) {
+Mat RGB_Base::M_RGBL2XYZ(IO io, bool rev = false) {
     io = choose_io(io);
     if (io in _M_RGBL2XYZ) {
         return _M_RGBL2XYZ[io][rev ? 1 : 0];
     }
-    if (io == io_base) {
+    if (io.m_illuminant < io_base.m_illuminant || io.m_illuminant == io_base.m_illuminant) {
         _M_RGBL2XYZ[io] = (M_RGBL2XYZ_base(), M_RGBL2XYZ_base().inv());
         return _M_RGBL2XYZ[io][rev ? 1 : 0];
     }
@@ -308,3 +296,4 @@ class REC_2020_RGB : public sRGB_Base {
 Mat colorconvert(Mat color, Mat src, Mat dst) {
     return dst.xyz2rgb(src.rgb2xyz(color, D65_2), D65_2);
 }
+
