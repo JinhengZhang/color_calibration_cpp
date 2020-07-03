@@ -5,7 +5,8 @@ Mat Linear::linearize(Mat inp)
     return inp;
 }
 
-Linear_gamma::Linear_gamma(float gamma_, int deg, Mat src, ColorCheckerMetric cc, double* saturated_threshold)
+
+Linear_gamma::Linear_gamma(float gamma_, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
 {
     gamma = gamma_;
 }
@@ -16,8 +17,8 @@ Mat Linear_gamma::linearize(Mat inp) {
 
 
 
-Linear_color_polyfit::Linear_color_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, double* saturated_threshold) {
-    mask = saturate(src, saturated_threshold);
+Linear_color_polyfit::Linear_color_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
+    vector<bool> mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     Mat src_;
     Mat dst_;
     for (int i = 0; i < src.rows; i++)
@@ -28,6 +29,7 @@ Linear_color_polyfit::Linear_color_polyfit(float gamma, int deg, Mat src, ColorC
             dst_.push_back(cc.rgbl.row(i));
         }
     }
+    
     src = src_.clone();
     dst = dst_.clone();
 
@@ -43,9 +45,9 @@ void Linear_color_polyfit::calc(void)
     Mat gd = dst.rowRange(1, 2).clone();
     Mat bd = dst.rowRange(2, 3).clone();
 
-    Mat pr = polyfit(rs, rd, deg);
-    Mat pg = polyfit(gs, gd, deg);
-    Mat pb = polyfit(bs, bd, deg);
+    pr = polyfit(rs, rd, deg);
+    pg = polyfit(gs, gd, deg);
+    pb = polyfit(bs, bd, deg);
 
 }
 
@@ -68,8 +70,8 @@ Mat Linear_color_polyfit::linearize(Mat inp)
 }
 
 
-Linear_color_logpolyfit::Linear_color_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, double* saturated_threshold) {
-    mask = saturate(src, saturated_threshold);
+Linear_color_logpolyfit::Linear_color_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
+    vector<bool> mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     Mat src_;
     Mat dst_;
     for (int i = 0; i < src.rows; i++)
@@ -93,39 +95,34 @@ void Linear_color_logpolyfit::calc(void)
     Mat rd = dst.rowRange(0, 1).clone();
     Mat gd = dst.rowRange(1, 2).clone();
     Mat bd = dst.rowRange(2, 3).clone();
-    /*
-        def _polyfit(s, d, deg) :
-            mask = (s > 0) & (d > 0)
-            s = s[mask]
-            d = d[mask]
-            p = np.polyfit(np.log(s), np.log(d), deg)
-            return np.poly1d(p)
 
-            self.pr, self.pg, self.pb = _polyfit(rs, rd, self.deg), _polyfit(gs, gd, self.deg), _polyfit(bs, bd, self.deg)
-    */
+    pr = _polyfit(rs, rd, deg);
+    pg = _polyfit(gs, gd, deg);
+    pb = _polyfit(bs, bd, deg);
+
 }
 
 Mat Linear_color_logpolyfit::linearize(Mat inp)
 {
-    /*  def _lin(p, x) :
-            mask = x > 0
-            y = x.copy()
-            y[mask] = np.exp(p(np.log(x[mask])))
-            y[~mask] = 0
-            return y
-            r, g, b = inp[..., 0], inp[..., 1], inp[..., 2]
-            return np.stack([_lin(self.pr, r), _lin(self.pg, g), _lin(self.pb, b)], axis = -1)
-    */
+    Mat r = inp.rowRange(0, 1).clone();
+    Mat g = inp.rowRange(1, 2).clone();
+    Mat b = inp.rowRange(2, 3).clone();
+    Mat res;
+    res.push_back(_lin(pr, r));
+    res.push_back(_lin(pg, g));
+    res.push_back(_lin(pb, b));
+    return res;
+    
 }
 
 
-Linear_gray_polyfit::Linear_gray_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, double* saturated_threshold) {
-    mask = saturate(src, saturated_threshold) & cc.white_mask;
+Linear_gray_polyfit::Linear_gray_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
+    vector<bool> mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     Mat src_;
     Mat dst_;
     for (int i = 0; i < src.rows; i++)
     {
-        if (mask[i] == true)
+        if (mask[i] == true and cc.white_mask.at<double>(0,i))
         {
             src_.push_back(src.row(i));
             dst_.push_back(cc.grayl.row(i));
@@ -139,8 +136,6 @@ Linear_gray_polyfit::Linear_gray_polyfit(float gamma, int deg, Mat src, ColorChe
 void Linear_gray_polyfit::calc(void)
 {
     Mat p = polyfit(src, dst, deg);
-    cout << 'p' << p << endl;
-
 }
 
 Mat Linear_gray_polyfit::linearize(Mat inp)
@@ -150,12 +145,12 @@ Mat Linear_gray_polyfit::linearize(Mat inp)
 
 
 Linear_gray_logpolyfit::Linear_gray_logpolyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, float* saturated_threshold) {
-    mask = saturate(src, saturated_threshold) & cc.white_mask;
+    vector<bool> mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     Mat src_;
     Mat dst_;
     for (int i = 0; i < src.rows; i++)
     {
-        if (mask[i] == true)
+        if (mask[i] == true and cc.white_mask.at<double>(0, i))
         {
             src_.push_back(src.row(i));
             dst_.push_back(cc.grayl.row(i));
@@ -173,20 +168,20 @@ void Linear_gray_logpolyfit::calc(void)
 
 Mat Linear_gray_logpolyfit::linearize(Mat inp)
 {
-    //return _lin(p, inp);
+    return _lin(p, inp);
 }
 
 
 Mat _polyfit(Mat src, Mat dst, int deg) {
-    mask = (src > 0) & (dst > 0);
+    //mask = (src > 0) & (dst > 0);
     Mat src_;
     Mat dst_;
     for (int i = 0; i < src.rows; i++)
     {
-        if (mask[i] == true)
+        if (src.at<double>(0,i) > 0 and dst.at<double>(0, i) > 0)
         {
             src_.push_back(src.row(i));
-            dst_.push_back(cc.rgbl.row(i));
+            dst_.push_back(dst.row(i));
         }
     }
     Mat s;
@@ -198,20 +193,18 @@ Mat _polyfit(Mat src, Mat dst, int deg) {
 }
 
 Mat _lin(Mat p, Mat x) {
-    /*
-    mask = x > 0;
+    Mat mask = x > 0;
     Mat y = x;
     Mat y_;
-    for (int i = 0; i < src.rows; i++)
-    {
-        if (mask[i] == true)
-        {
-            src_.push_back(exp(p(src.row(i));
-            dst_.push_back(cc.rgbl.row(i));
+    for (int i = 0; i < y.rows; i++)
+        for (int j = 0; j < y.cols; j++)
+                if (mask[i] == true)
+                {
+                    y_.push_back(exp(p(y.row(i)));
+                }
+            }
         }
-    }
     return y;
-    */
 }
 
 Mat polyfit(Mat src_x, Mat src_y, int order) {
