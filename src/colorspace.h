@@ -65,9 +65,9 @@ public:
 };
 
 
-
 class sRGB : public sRGB_Base
 {
+public:
     Mat _M_RGBL2XYZ_base;
     sRGB() : sRGB_Base() {
         Mat _M_RGBL2XYZ_base = (Mat_<double>(3, 3) <<
@@ -78,10 +78,12 @@ class sRGB : public sRGB_Base
 };
 
 class AdobeRGB : public RGB_Base {
-
+public:
+    using RGB_Base::RGB_Base;
 };
 
 class WideGamutRGB : public RGB_Base {
+public:
     WideGamutRGB() : RGB_Base() {
         xr = 0.7347;
         yr = 0.2653;
@@ -94,6 +96,7 @@ class WideGamutRGB : public RGB_Base {
 };
 
 class ProPhotoRGB : public RGB_Base {
+public:
     ProPhotoRGB() : RGB_Base() {
         xr = 0.734699;
         yr = 0.265301;
@@ -106,6 +109,7 @@ class ProPhotoRGB : public RGB_Base {
 };
 
 class DCI_P3_RGB : public RGB_Base {
+public:
     DCI_P3_RGB() : RGB_Base() {
         xr = 0.680;
         yr = 0.32;
@@ -117,6 +121,7 @@ class DCI_P3_RGB : public RGB_Base {
 };
 
 class AppleRGB : public RGB_Base {
+public:
     AppleRGB() : RGB_Base() {
         xr = 0.626;
         yr = 0.34;
@@ -129,6 +134,7 @@ class AppleRGB : public RGB_Base {
 };
 
 class REC_709_RGB : public sRGB_Base {
+public:
     REC_709_RGB() : sRGB_Base() {
         xr = 0.64;
         yr = 0.33;
@@ -144,6 +150,7 @@ class REC_709_RGB : public sRGB_Base {
 };
 
 class REC_2020_RGB : public sRGB_Base {
+public:
     REC_2020_RGB() : sRGB_Base() {
         xr = 0.708;
         yr = 0.292;
