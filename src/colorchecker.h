@@ -1,11 +1,12 @@
 #ifndef COLORCHECKER_H
 #define COLORCHECKER_H
 
-#include "colorspace.h"
+#include <iostream>
 
-
-#define COLORSPACE(colorspace) colorspace 
-
+#include <string>
+//#include "colorspace.h"
+#include "IO.h"
+#include "Reflex.h"
 
 class ColorChecker
 {
@@ -13,10 +14,10 @@ public:
 	Mat lab;
 	IO io;
 	Mat rgb;
-	//string cs;
+	RGB_Base* cs;
 	Mat white_mask;
 	Mat color_mask;
-	ColorChecker();
+	ColorChecker() {};
 	ColorChecker(Mat, string, IO, Mat);
 
 };
@@ -31,7 +32,7 @@ ColorChecker::ColorChecker(Mat color, string colorspace, IO io_, Mat whites) {
 	else
 	{
 		rgb = color;
-		COLORSPACE(colorspace) cs;
+		RGB_Base* cs = (RGB_Base*)ClassFactory::getInstance().getClassByName(colorspace);
 	}
 
 	vector<bool> white_m( color.rows, false );
@@ -53,41 +54,46 @@ class ColorCheckerMetric
 {
 public:
 	ColorChecker cc;
-	//string cs;
+	RGB_Base* cs;
 	IO io;
 	Mat lab;
 	Mat xyz;
+	Mat rgb;
 	Mat rgbl;
 	Mat lab;
 	Mat grayl;
 	Mat white_mask;
 	Mat color_mask;
-	ColorCheckerMetric(ColorChecker, string, IO);
+	ColorCheckerMetric() {};
+	ColorCheckerMetric(ColorChecker, String, IO);
 };
 
-ColorCheckerMetric(ColorChecker colorchecker, string colorspace, IO io_)
+ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, String colorspace, IO io_)
 {
 	cc = colorchecker;
-	COLORSPACE(colorspace) cs;
+	RGB_Base* cs = (RGB_Base*)ClassFactory::getInstance().getClassByName(colorspace);
 	io = io_;
-	if (!cc.lab.empty(）)
+	if (!cc.lab.empty())
 	{
 		lab = lab2lab(cc.lab, cc.io, io_);
 		xyz = lab2xyz(lab, io_);
-		rgbl = cs.xyz2rgbl(xyz, io_);
-		rgb = cs.rgbl2rgb(rgbl);
+		rgbl = cs->xyz2rgbl(xyz, io_);
+		rgb = cs->rgbl2rgb(rgbl);
 	}
 	else
 	{
-		rgb = cs.xyz2rgb(cc.cs.rgb2xyz(cc.rgb, IO("D65", 2)), IO("D65", 2))
-			rgbl = cs.rgb2rgbl(rgb);
-		xyz = cs.rgbl2xyz(rgbl);
+		rgb = cs->xyz2rgb(cc.cs.rgb2xyz(cc.rgb, IO("D65", 2)), IO("D65", 2));
+        rgbl = cs->rgb2rgbl(rgb);
+		xyz = cs->rgbl2xyz(rgbl);
 		lab = xyz2lab(xyz);
 	}
 	grayl = xyz2grayl(xyz);
 	white_mask = cc.white_mask;
 	color_mask = cc.color_mask;
 }
+
+
+
 Mat ColorChecker2005_LAB_D50_2 = (Mat_<float>(24, 3) <<
 	37.986, 13.555, 14.059,
 	65.711, 18.13, 17.81,
@@ -140,7 +146,7 @@ Mat ColorChecker2005_LAB_D65_2 = (Mat_<float>(24, 3) <<
 	35.68, -0.22, -1.205,
 	20.475, 0.049, -0.972);
 
-Mat Arange_18_24 = (Mat_<int>(1, 7) << 18, 19, 20, 21, 22, 23, 24)
+Mat Arange_18_24 = (Mat_<int>(1, 7) << 18, 19, 20, 21, 22, 23, 24);
 
 ColorChecker colorchecker_Macbeth(ColorChecker2005_LAB_D50_2, 'LAB', IO("D65", 2), Arange_18_24);
 ColorChecker colorchecker_Macbeth_D65_2(ColorChecker2005_LAB_D65_2, 'LAB', IO("D65", 2), Arange_18_24);
