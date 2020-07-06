@@ -4,9 +4,12 @@
 #include <iostream>
 
 #include <string>
-//#include "colorspace.h"
+#include "colorspace.h"
 #include "IO.h"
 #include "Reflex.h"
+
+
+
 
 class ColorChecker
 {
@@ -23,6 +26,7 @@ public:
 };
 
 
+
 ColorChecker::ColorChecker(Mat color, string colorspace, IO io_, Mat whites) {
 	if (colorspace == "lab")
 	{
@@ -32,7 +36,7 @@ ColorChecker::ColorChecker(Mat color, string colorspace, IO io_, Mat whites) {
 	else
 	{
 		rgb = color;
-		RGB_Base* cs = (RGB_Base*)ClassFactory::getInstance().getClassByName(colorspace);
+		cs = get_colorspace(colorspace);
 	}
 
 	vector<bool> white_m( color.rows, false );
@@ -68,10 +72,10 @@ public:
 	ColorCheckerMetric(ColorChecker, String, IO);
 };
 
-ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, String colorspace, IO io_)
+ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, string colorspace, IO io_)
 {
 	cc = colorchecker;
-	RGB_Base* cs = (RGB_Base*)ClassFactory::getInstance().getClassByName(colorspace);
+	cs = get_colorspace(colorspace);
 	io = io_;
 	if (!cc.lab.empty())
 	{
@@ -84,8 +88,8 @@ ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, String colorsp
 	{
 		rgb = cs->xyz2rgb(cc.cs.rgb2xyz(cc.rgb, IO("D65", 2)), IO("D65", 2));
         rgbl = cs->rgb2rgbl(rgb);
-		xyz = cs->rgbl2xyz(rgbl);
-		lab = xyz2lab(xyz);
+		xyz = cs->rgbl2xyz(rgbl, io);
+		lab = xyz2lab(xyz, io);
 	}
 	grayl = xyz2grayl(xyz);
 	white_mask = cc.white_mask;
@@ -94,7 +98,7 @@ ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, String colorsp
 
 
 
-Mat ColorChecker2005_LAB_D50_2 = (Mat_<float>(24, 3) <<
+Mat ColorChecker2005_LAB_D50_2 = (Mat_<double>(24, 3) <<
 	37.986, 13.555, 14.059,
 	65.711, 18.13, 17.81,
 	49.927, -4.88, -21.925,
@@ -120,7 +124,7 @@ Mat ColorChecker2005_LAB_D50_2 = (Mat_<float>(24, 3) <<
 	35.656, -0.421, -1.231,
 	20.461, -0.079, -0.973);
 
-Mat ColorChecker2005_LAB_D65_2 = (Mat_<float>(24, 3) <<
+Mat ColorChecker2005_LAB_D65_2 = (Mat_<double>(24, 3) <<
 	37.542, 12.018, 13.33,
 	65.2, 14.821, 17.545,
 	50.366, -1.573, -21.431,
