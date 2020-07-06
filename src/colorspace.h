@@ -61,7 +61,6 @@ public:
     Mat rgb2rgbl(Mat rgb);
     float _rgbl2rgb_ele(float x);
     Mat rgbl2rgb(Mat rgbl);
-
 };
 
 
@@ -77,10 +76,12 @@ public:
     }
 };
 
+
 class AdobeRGB : public RGB_Base {
 public:
     using RGB_Base::RGB_Base;
 };
+
 
 class WideGamutRGB : public RGB_Base {
 public:
@@ -95,6 +96,7 @@ public:
     }
 };
 
+
 class ProPhotoRGB : public RGB_Base {
 public:
     ProPhotoRGB() : RGB_Base() {
@@ -108,6 +110,7 @@ public:
     }
 };
 
+
 class DCI_P3_RGB : public RGB_Base {
 public:
     DCI_P3_RGB() : RGB_Base() {
@@ -119,6 +122,7 @@ public:
         yb = 0.06;
     }
 };
+
 
 class AppleRGB : public RGB_Base {
 public:
@@ -132,6 +136,7 @@ public:
         gamma = 1.8;
     }
 };
+
 
 class REC_709_RGB : public sRGB_Base {
 public:
@@ -149,6 +154,7 @@ public:
     }
 };
 
+
 class REC_2020_RGB : public sRGB_Base {
 public:
     REC_2020_RGB() : sRGB_Base() {
@@ -164,6 +170,7 @@ public:
         gamma = 1 / 0.45;
     }
 };
+
 
 RGB_Base* get_colorspace(string colorspace);
 
