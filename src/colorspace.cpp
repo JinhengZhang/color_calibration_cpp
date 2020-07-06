@@ -190,3 +190,39 @@ Mat  sRGB_Base::rgbl2rgb(Mat rgbl) {
     }
     return rgbl;
 }
+
+RGB_Base* get_colorspace(string colorspace) {
+    RGB_Base* p = new RGB_Base;
+    if (colorspace == "RGB_Base") {
+        p = new RGB_Base;
+    }
+    else if (colorspace == "sRGB_Base") {
+        p = new sRGB_Base;
+    }
+    else if (colorspace == "sRGB") {
+        p = new sRGB;
+    }
+    else if (colorspace == "AdobeRGB") {
+        p = new AdobeRGB;
+    }
+    else if (colorspace == "WideGamutRGB") {
+        p = new WideGamutRGB;
+    }
+    else if (colorspace == "ProPhotoRGB") {
+        p = new ProPhotoRGB;
+    }
+    else if (colorspace == "DCI_P3_RGB") {
+        p = new DCI_P3_RGB;
+    }
+    else if (colorspace == "AppleRGB") {
+        p = new AppleRGB;
+    }
+    else if (colorspace == "REC_709_RGB") {
+        p = new REC_709_RGB;
+    }
+    else if (colorspace == "REC_2020_RGB") {
+        p = new REC_2020_RGB;
+    }
+    return p;
+}
+
