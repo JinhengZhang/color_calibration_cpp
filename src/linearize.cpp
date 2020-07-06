@@ -196,11 +196,11 @@ Mat _lin(Mat p, Mat x) {
     Mat mask = x > 0;
     Mat y = x;
     Mat y_;
-    for (int i = 0; i < y.rows; i++)
-        for (int j = 0; j < y.cols; j++)
+    for (int i = 0; i < y.rows; i++){
+        for (int j = 0; j < y.cols; j++){
                 if (mask[i] == true)
                 {
-                    y_.push_back(exp(p(y.row(i)));
+                    y_.push_back(exp(p(log(y.row(i))));
                 }
             }
         }
@@ -224,7 +224,7 @@ Mat polyfit(Mat src_x, Mat src_y, int order) {
     return w;
 }
 
-Mat poly1d(Mat src, Mat w, int deg) {
+Mat Linear::poly1d(Mat src, Mat w, int deg) {
 
     for (int x = 1; x < src.cols; ++x) {
         double res = 0.0;
