@@ -1,7 +1,6 @@
 #ifndef CCM_H
 #define CCM_H
 
-
 #include<iostream>
 #include<cmath>
 #include "utils.h"
@@ -25,7 +24,7 @@ public:
     RGB_Base* cs;    
     Linear* linear;
     Mat weights;
-    Mat mask;
+    vector<bool> mask;
     Mat src_rgbl;
     Mat src_rgb_masked;
     Mat src_rgbl_masked;
