@@ -14,6 +14,7 @@ RGB_Base::RGB_Base(void) {
     _default_io = IO("D65", 2);
 }
 
+
 Mat RGB_Base::cal_M_RGBL2XYZ_base() {
     Mat XYZr = Mat(xyY2XYZ(xr, yr)), XYZg = Mat(xyY2XYZ(xg, yg)), XYZb = Mat(xyY2XYZ(xb, yb));
     map <IO, vector<double>> illuminants = get_illuminant();
@@ -33,7 +34,6 @@ Mat RGB_Base::cal_M_RGBL2XYZ_base() {
     _M_RGBL2XYZ_base.t();
     return _M_RGBL2XYZ_base;
 }
-
 
 Mat RGB_Base::M_RGBL2XYZ_base() {
     if (_M_RGBL2XYZ_base.empty()) {
@@ -118,6 +118,7 @@ sRGB_Base::sRGB_Base(void) {
     gamma = 2.4;
 }
 
+
 float sRGB_Base::K0() {
     if (_K0) {
         return _K0;
@@ -140,6 +141,8 @@ float  sRGB_Base::_rgb2rgbl_ele(float x) {
     }
 
 }
+
+
 Mat  sRGB_Base::rgb2rgbl(Mat rgb) {
     int height = rgb.rows;
     int width = rgb.cols;
@@ -158,11 +161,11 @@ Mat  sRGB_Base::rgb2rgbl(Mat rgb) {
     return rgb;
 }
 
+
 float  sRGB_Base::_rgbl2rgb_ele(float x) {
     if (x > beta) {
         return pow(((x + alpha - 1) / alpha), gamma);
     }
-
     else if (x >= -beta) {
         return x * phi;
     }
@@ -172,6 +175,7 @@ float  sRGB_Base::_rgbl2rgb_ele(float x) {
     }
 
 }
+
 
 Mat  sRGB_Base::rgbl2rgb(Mat rgbl) {
     int height = rgbl.rows;
@@ -190,6 +194,7 @@ Mat  sRGB_Base::rgbl2rgb(Mat rgbl) {
     }
     return rgbl;
 }
+
 
 RGB_Base* get_colorspace(string colorspace) {
     RGB_Base* p = new RGB_Base;
