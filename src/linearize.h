@@ -45,6 +45,7 @@ public:
     Mat src;
     Mat dst;
     Mat pr, pg, pb;
+    Linear_color_polyfit() {};
     Linear_color_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
     Mat linearize(Mat inp);
@@ -56,10 +57,11 @@ class Linear_color_logpolyfit : public Linear
 {
 public:
     int deg;
-    bool mask;
+    vector<bool> mask;
     Mat src;
     Mat dst;
     Mat pr, pg, pb;
+    Linear_color_logpolyfit() {};
     Linear_color_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
     Mat linearize(Mat inp);
@@ -72,11 +74,11 @@ class Linear_gray_polyfit : public Linear
 {
 public:
     int deg;
-
-    bool mask;
+    vector<bool> mask;
     Mat src;
     Mat dst;
     Mat p;
+    Linear_gray_polyfit() {};
     Linear_gray_polyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
     Mat linearize(Mat inp);
@@ -87,11 +89,11 @@ class Linear_gray_logpolyfit : public Linear
 {
 public:
     int deg;
-
-    bool mask;
+    vector<bool> mask;
     Mat src;
     Mat dst;
     Mat p;
+    Linear_gray_logpolyfit() {};
     Linear_gray_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
     Mat linearize(Mat inp);
