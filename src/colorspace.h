@@ -23,19 +23,19 @@ public:
 
     RGB_Base();
 
-    Mat cal_M_RGBL2XYZ_base();
-    Mat M_RGBL2XYZ_base();
-    IO choose_io(IO io);
-    void set_default(IO io);
-    Mat M_RGBL2XYZ(IO io, bool rev);
-    Mat rgbl2xyz(Mat rgbl, IO io);
-    Mat xyz2rgbl(Mat xyz, IO io);
-    Mat rgb2rgbl(Mat rgb);
-    Mat rgbl2rgb(Mat rgbl);
-    Mat rgb2xyz(Mat rgb, IO io);
-    Mat xyz2rgb(Mat xyz, IO io);
-    Mat rgbl2lab(Mat rgbl, IO io);
-    Mat rgb2lab(Mat rgb, IO io);
+    virtual Mat cal_M_RGBL2XYZ_base();
+    virtual Mat M_RGBL2XYZ_base();
+    virtual IO choose_io(IO io);
+    virtual void set_default(IO io);
+    virtual Mat M_RGBL2XYZ(IO io, bool rev);
+    virtual Mat rgbl2xyz(Mat rgbl, IO io);
+    virtual Mat xyz2rgbl(Mat xyz, IO io);
+    virtual Mat rgb2rgbl(Mat rgb);
+    virtual Mat rgbl2rgb(Mat rgbl);
+    virtual Mat rgb2xyz(Mat rgb, IO io);
+    virtual Mat xyz2rgb(Mat xyz, IO io);
+    virtual Mat rgbl2lab(Mat rgbl, IO io);
+    virtual Mat rgb2lab(Mat rgb, IO io);
 };
 
 
@@ -165,6 +165,7 @@ public:
     }
 };
 
+RGB_Base* get_colorspace(string colorspace);
 
 
 #endif
