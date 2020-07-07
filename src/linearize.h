@@ -17,6 +17,9 @@ public:
     virtual void value(void) {}
     Mat polyfit(Mat src_x, Mat src_y, int order);
     Mat poly1d(Mat src, Mat w, int deg);
+    Mat _polyfit(Mat src, Mat dst, int deg);
+    Mat _lin(Mat p, Mat x, int deg);
+
 };
 
 
