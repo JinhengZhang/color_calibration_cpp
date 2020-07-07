@@ -16,7 +16,7 @@ ColorChecker::ColorChecker(Mat color, string colorspace, IO io_, Mat whites) {
 	vector<bool> white_m(color.rows, false);
 	if (!whites.empty())
 	{
-		for (int i = 0; i < whites.cols; i++) //
+		for (int i = 0; i < whites.cols; i++) 
 		{
 			white_m[whites.at<double>(0, i)] = true;
 		}
@@ -40,7 +40,7 @@ ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, string colorsp
 	}
 	else
 	{
-		rgb = cs->xyz2rgb(cc.cs.rgb2xyz(cc.rgb, IO("D65", 2)), IO("D65", 2));
+		rgb = cs->xyz2rgb(cc.cs->rgb2xyz(cc.rgb, IO("D65", 2)), IO("D65", 2));
 		rgbl = cs->rgb2rgbl(rgb);
 		xyz = cs->rgbl2xyz(rgbl, io);
 		lab = xyz2lab(xyz, io);
@@ -105,5 +105,5 @@ Mat ColorChecker2005_LAB_D65_2 = (Mat_<double>(24, 3) <<
 
 Mat Arange_18_24 = (Mat_<int>(1, 7) << 18, 19, 20, 21, 22, 23, 24);
 
-colorchecker_Macbeth = ColorChecker(ColorChecker2005_LAB_D50_2, "LAB", IO("D65", 2), Arange_18_24);
-colorchecker_Macbeth_D65_2 = ColorChecker(ColorChecker2005_LAB_D65_2, "LAB", IO("D65", 2), Arange_18_24);
+ColorChecker colorchecker_Macbeth = ColorChecker(ColorChecker2005_LAB_D50_2, "LAB", IO("D65", 2), Arange_18_24);
+ColorChecker colorchecker_Macbeth_D65_2 = ColorChecker(ColorChecker2005_LAB_D65_2, "LAB", IO("D65", 2), Arange_18_24);
