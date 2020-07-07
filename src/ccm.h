@@ -4,7 +4,7 @@
 #include<iostream>
 #include<cmath>
 #include "utils.h"
-//#include "distance.h"
+#include "distance.h"
 #include "linearize.h"
 #include "colorspace.h"
 #include "colorchecker.h"
