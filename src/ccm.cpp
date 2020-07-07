@@ -99,22 +99,7 @@ Mat CCM_3x3::initial_least_square(Mat src_rgbl, Mat dst_rgbl) {
 double CCM_3x3::loss_rgb(Mat ccm) {
     ccm = ccm.reshape(0, 3);
     Mat lab_est = cs->rgbl2rgb(src_rgbl_masked * ccm);
-    if (distance == "rgb" or "rgbl" or "de76")
-    {
-        dist = distance_de76(lab_est, dst_rgb_masked);
-    }
-    else if (distance == "de00")
-    {
-        dist = distance_de00(lab_est, dst_rgb_masked);
-    }
-    else if (distance == "de94")
-    {
-        dist = distance_de94(lab_est, dst_rgb_masked);
-    }
-    else if (distance == "cmc")
-    {
-        dist = distance_cmc(lab_est, dst_rgb_masked);
-    }
+    dist = distance_s(lab_est, dst_rgb_masked, distance);
     Mat dist_;
     pow(dist, 2.0, dist_);
     if (weights.data)
@@ -172,22 +157,7 @@ double CCM_3x3::loss(Mat ccm) {
     ccm = ccm.reshape(0, 3);
     IO io_;
     Mat lab_est = cs->rgbl2lab(src_rgbl_masked * ccm, io_);
-    if (distance == "rgb" or "rgbl" or "de76")
-    {
-        dist = distance_de76(lab_est, dst_lab_masked);
-    }
-    else if (distance == "de00")
-    {
-        dist = distance_de00(lab_est, dst_lab_masked);
-    }
-    else if (distance == "de94")
-    {
-        dist = distance_de94(lab_est, dst_lab_masked);
-    }
-    else if (distance == "cmc")
-    {
-        dist = distance_cmc(lab_est, dst_lab_masked);
-    }
+    dist = distance_s(lab_est, dst_rgb_masked, distance);
     Mat dist_;
     pow(dist, 2, dist_);
     if (weights.data)
@@ -242,15 +212,19 @@ Mat CCM_3x3::infer(Mat img, bool L=false) {
 }
 
 
-Mat CCM_3x3::infer_image(string imgfile, bool L, int inp_size, int out_size, string out_dtype) {
+Mat CCM_3x3::infer_image(string imgfile, bool L=false, int inp_size=255, int out_size=255, string out_dtype) {
     Mat img = imread(imgfile);
     Mat img_;
     cvtColor(img, img_, COLOR_BGR2RGB);
     img_= img_ / inp_size;
     Mat out = infer(img_, L);
-    //img_out = np.minimum(np.maximum(np.round(out * out_size), 0), out_size);
+    Mat out_ = out * out_size;
+    out_.convertTo(out_, CV_8UC1, 100, 0.5);
+    Mat img_out = min(max(out_, 0), out_size);
     //img_out = img_out.astype(out_dtype);
-    return cvtColor(img_out, img, COLOR_RGB2BGR);
+    Mat out_img;
+    cvtColor(img_out, out_img, COLOR_RGB2BGR);
+    return out_img;
 }
 
 
