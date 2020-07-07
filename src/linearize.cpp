@@ -122,7 +122,7 @@ Mat Linear_gray_polyfit::linearize(Mat inp)
 }
 
 
-Linear_gray_logpolyfit::Linear_gray_logpolyfit(float gamma, float deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
+Linear_gray_logpolyfit::Linear_gray_logpolyfit(float gamma, int deg, Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {
     vector<bool> mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     Mat src_;
     Mat dst_;
@@ -145,11 +145,11 @@ Mat Linear_gray_logpolyfit::linearize(Mat inp)
 }
 
 
-Mat _polyfit(Mat src, Mat dst, int deg) {
-    Mat mask = (src > 0) & (dst > 0);
+Mat Linear::_polyfit(Mat src, Mat dst, int deg) {
+    Mat mask_ = (src > 0) & (dst > 0);
     Mat src_, dst_;
-    src.copyTo(src_, mask);
-    dst.copyTo(dst_, mask);
+    src.copyTo(src_, mask_);
+    dst.copyTo(dst_, mask_);
     Mat s, d;
     log(src_, s);
     log(dst_, d);
@@ -158,7 +158,7 @@ Mat _polyfit(Mat src, Mat dst, int deg) {
 }
 
 
-Mat _lin(Mat p, Mat x, int deg) {
+Mat Linear::_lin(Mat p, Mat x, int deg) {
     Mat mask_ = x <= 0;
     Mat y;
     log(x, y);
