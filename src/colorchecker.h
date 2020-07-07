@@ -6,7 +6,6 @@
 #include <string>
 #include "colorspace.h"
 #include "IO.h"
-#include "Reflex.h"
 
 
 class ColorChecker
@@ -37,7 +36,7 @@ public:
 	Mat white_mask;
 	Mat color_mask;
 	ColorCheckerMetric() {};
-	ColorCheckerMetric(ColorChecker, String, IO);
+	ColorCheckerMetric(ColorChecker colorchecker, string colorspace, IO io_);
 };
 
 
