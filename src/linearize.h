@@ -107,3 +107,4 @@ public:
 
 
 Linear* get_linear(string linear);
+#endif
