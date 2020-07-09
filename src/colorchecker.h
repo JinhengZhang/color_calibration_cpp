@@ -39,12 +39,12 @@ public:
 	ColorCheckerMetric(ColorChecker colorchecker, string colorspace, IO io_);
 };
 
-
+/*
 Mat ColorChecker2005_LAB_D50_2;
 Mat ColorChecker2005_LAB_D65_2;
 Mat Arange_18_24;
 ColorChecker colorchecker_Macbeth;
 ColorChecker colorchecker_Macbeth_D65_2;
-
+*/
 
 #endif
