@@ -1,7 +1,7 @@
 #include "ccm.h"
 
 
-CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, string ccm_shape, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, double xtol_, double ftol_)
+CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, double xtol_, double ftol_)
 {
     src = src_;
     IO dist_io = IO(dist_illuminant, dist_observer);
@@ -13,10 +13,10 @@ CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant
         cc_ = ColorChecker(dst, dst_colorspace, IO(dst_illuminant, dst_observer), dst_whites);
     }
     else if(colorchecker == "Macbeth_D65_2") {
-        cc_ = ColorChecker(ColorChecker2005_LAB_D65_2, 'LAB', IO("D65", 2), Arange_18_24);
+        cc_ = ColorChecker(ColorChecker2005_LAB_D65_2, "LAB", IO("D65", 2), Arange_18_24);
     }
     else if (colorchecker == "Macbeth_D50_2") {
-        cc_ = ColorChecker(ColorChecker2005_LAB_D50_2, 'LAB', IO("D65", 2), Arange_18_24);
+        cc_ = ColorChecker(ColorChecker2005_LAB_D50_2, "LAB", IO("D65", 2), Arange_18_24);
     }
     cc = ColorCheckerMetric(cc_, colorspace, dist_io);
 
@@ -40,7 +40,8 @@ CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant
     }
 
     vector<bool> saturate_mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
-    mask = saturate_mask & weight_mask;
+    Mat mask = Mat(mask);
+    mask.copyTo(weight_mask, saturate_mask);
     src_rgbl = linear->linearize(src);
     src.copyTo(src_rgb_masked, mask);
     src_rgbl.copyTo(src_rgbl_masked, mask);
@@ -146,7 +147,7 @@ void CCM_3x3::calculate_rgbl(void) {
     {
         Mat w_, w;
         pow(weights_masked_norm, 0.5, w_);
-        w = diag(w_);
+        w = Mat::diag(w_);
         ccm = initial_least_square(src_rgbl_masked * w, dst_rgbl_masked * w);
     }
     double error = pow((loss_rgbl(ccm) / masked_len), 0.5);
@@ -234,7 +235,10 @@ void CCM_4x3::prepare(void) {
 
 
 Mat CCM_4x3::add_column(Mat arr) {
-    //return np.c_[arr, np.ones((*arr.shape[:-1], 1))];
+    Mat arr1 = Mat::ones(arr.rows, 1, CV_8U);
+    Mat arr_out;
+    vconcat(arr, arr1, arr_out);
+    return arr_out;
 }
 
 
@@ -267,12 +271,15 @@ void CCM_4x3::value(int number) {
     RNG rng;
     Mat_<float>rand(number, 3);
     rng.fill(rand, RNG::UNIFORM, 0, 1);
-    vector<bool> mask_ = saturate(infer(rand), 0, 1);
-    double sat = sum(mask_) / number;
+    vector<bool> mask_ = saturate(infer(rand,false), 0, 1);
+    Scalar ss = sum(mask_);
+    double sat = ss[0] / number;
     cout << "sat:" << sat << endl;
     Mat rgbl = cs->rgb2rgbl(rand);
-    //up, down = self.ccm[:3, : ], self.ccm[3:, : ]
-    //mask_ = saturate((rgbl - np.ones((number, 1))@down)@np.linalg.inv(up), 0, 1)
+    Mat up = ccm.rowRange(1, 3).clone();
+    Mat down = ccm.rowRange(3, ccm.rows).clone();
+
+    mask_ = saturate((rgbl - Mat::ones(number, 1, CV_8U) * down) * up.inv(), 0, 1);
     dist = sum(mask_) / number;
     cout << "dist:" << dist << endl;
 }
