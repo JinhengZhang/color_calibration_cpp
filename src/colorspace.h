@@ -2,6 +2,7 @@
 #define COLORSPACE_H
 
 #include "utils.h"
+#include "IO.h"
 
 using namespace std;
 using namespace cv;
@@ -16,7 +17,7 @@ public:
     double xb;
     double yb;
     IO io_base;
-    float gamma;
+    double gamma;
     Mat _M_RGBL2XYZ_base;
     map<IO, vector<Mat>> _M_RGBL2XYZ;
     IO _default_io;
@@ -27,7 +28,7 @@ public:
     virtual Mat M_RGBL2XYZ_base();
     virtual IO choose_io(IO io);
     virtual void set_default(IO io);
-    virtual Mat M_RGBL2XYZ(IO io, bool rev);
+    virtual Mat M_RGBL2XYZ(IO io, bool rev = false);
     virtual Mat rgbl2xyz(Mat rgbl, IO io);
     virtual Mat xyz2rgbl(Mat xyz, IO io);
     virtual Mat rgb2rgbl(Mat rgb);
@@ -42,24 +43,24 @@ public:
 class sRGB_Base : public RGB_Base
 {
 public:
-    float xr;
-    float yr;
-    float xg;
-    float yg;
-    float xb;
-    float yb;
-    float alpha;
-    float beta;
-    float phi;
-    float gamma;
-    float _K0;
+    double xr;
+    double yr;
+    double xg;
+    double yg;
+    double xb;
+    double yb;
+    double alpha;
+    double beta;
+    double phi;
+    double gamma;
+    double _K0;
 
     sRGB_Base();
 
-    float K0();
-    float _rgb2rgbl_ele(float x);
+    double K0();
+    double _rgb2rgbl_ele(double x);
     Mat rgb2rgbl(Mat rgb);
-    float _rgbl2rgb_ele(float x);
+    double _rgbl2rgb_ele(double x);
     Mat rgbl2rgb(Mat rgbl);
 };
 
