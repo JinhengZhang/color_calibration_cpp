@@ -187,7 +187,7 @@ void CCM_3x3::value(int number) {
     RNG rng;
     Mat_<float>rand(number, 3);
     rng.fill(rand, RNG::UNIFORM, 0, 1);
-    vector<bool> mask_ = saturate(infer(rand), 0, 1);
+    vector<bool> mask_ = saturate(infer(rand,false), 0, 1);
     Scalar ss = sum(dist);
     double sat = ss[0] / number;
     cout << "sat:" << sat << endl;
