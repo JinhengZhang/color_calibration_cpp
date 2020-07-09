@@ -89,11 +89,11 @@ class CCM_4x3 : public CCM_3x3
 public:
     using CCM_3x3::CCM_3x3;
 
-    void prepare(void) {};
-    Mat add_column(Mat arr) {};
-    Mat initial_white_balance(Mat src_rgbl, Mat dst_rgbl) {};
-    Mat infer(Mat img, bool L) {};
-    void value(int number) {};
+    void prepare(void) ;
+    Mat add_column(Mat arr) ;
+    Mat initial_white_balance(Mat src_rgbl, Mat dst_rgbl) ;
+    Mat infer(Mat img, bool L) ;
+    void value(int number) ;
 };
 
 Mat ColorChecker2005_LAB_D50_2 = (Mat_<double>(24, 3) <<
