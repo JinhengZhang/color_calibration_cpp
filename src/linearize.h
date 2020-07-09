@@ -106,29 +106,4 @@ public:
 
 
 
-Linear* get_linear(string linear) {
-    Linear* p = new Linear;
-    if (linear == "Linear") {
-        p = new Linear;
-    }
-    else if (linear == "Linear_identity") {
-        p = new Linear_identity;
-    }
-    else if (linear == "Linear_gamma") {
-        p = new Linear_gamma;
-    }
-    else if (linear == "Linear_color_polyfit") {
-        p = new Linear_color_polyfit;
-    }
-    else if (linear == "Linear_color_logpolyfit") {
-        p = new Linear_color_logpolyfit;
-    }
-    else if (linear == "Linear_gray_polyfit") {
-        p = new Linear_gray_polyfit;
-    }
-    else if (linear == "Linear_gray_logpolyfit") {
-        p = new Linear_gray_logpolyfit;
-    }
-    return p;
-}
-#endif
+Linear* get_linear(string linear);
