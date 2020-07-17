@@ -10,6 +10,8 @@
 #include "colorchecker.h"
 #include "opencv2\opencv.hpp"
 #include "opencv2\core\core.hpp"
+#include "opencv2\core\optim.hpp"
+
 
 using namespace std;
 using namespace cv;
@@ -67,7 +69,8 @@ public:
     //struct color_c* pcolor_c = &color_ca;
     //CCM_3x3(Mat src_, struct color_c* pcolor_c);
     CCM_3x3() {};
-    CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, double xtol_, double ftol_);
+    CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, 
+        string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, double xtol_, double ftol_);
 
     void prepare(void) {};
     Mat initial_white_balance(Mat src_rgbl, Mat dst_rgbl);
@@ -80,7 +83,7 @@ public:
     void calculate(void);
     void value(int number);
     Mat infer(Mat img, bool L);
-    Mat infer_image(string imgfile, bool L, int inp_size, int out_size, string out_dtype);
+    Mat infer_image(string imgfile, bool L, int inp_size, int out_size);
 };
 
 
