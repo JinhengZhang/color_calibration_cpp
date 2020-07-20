@@ -1,7 +1,7 @@
 #include "ccm.h"
 
 
-CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, double xtol_, double ftol_)
+CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method)
 {
     this->src = src_;
     IO dist_io = IO(dist_illuminant, dist_observer);
@@ -61,10 +61,11 @@ CCM_3x3::CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant
         this->ccm0 = this->initial_least_square(this->src_rgbl_masked, this->dst_rgbl_masked);
     }
 
-    if (distance == "rgb") {
+    this->distance = distance_;
+    if (this->distance == "rgb") {
         this->calculate_rgb();
     }
-    else if(distance == "rgbl") {
+    else if(this->distance == "rgbl") {
         this->calculate_rgbl();
     }
     else {
@@ -98,7 +99,7 @@ public:
     double calc(const double* x) const {
         Mat ccm(3, 3, CV_32F, &x);
         Mat lab_est = this->cs->rgbl2rgb(this->src_rgbl_masked * ccm);
-        Mat dist = distance_s(lab_est, this->dst_rgb_masked, distance);
+        Mat dist = distance_s(lab_est, this->dst_rgb_masked, this->distance);
         Mat dist_;
         pow(dist, 2.0, dist_);
         if (this->weights.data) {
@@ -151,7 +152,7 @@ public:
         Mat ccm(3, 3, CV_32F, &x);
         IO io_;
         Mat lab_est = this->cs->rgbl2lab(this->src_rgbl_masked * ccm, io_);
-        Mat dist = distance_s(lab_est, this->dst_rgb_masked, distance);
+        Mat dist = distance_s(lab_est, this->dst_rgb_masked, this->distance);
         Mat dist_;
         pow(dist, 2, dist_);
         if (this->weights.data) {
