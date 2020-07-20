@@ -26,7 +26,7 @@ public:
     RGB_Base* cs;    
     Linear* linear;
     Mat weights;
-    vector<bool> mask;
+    Mat mask;
     Mat src_rgbl;
     Mat src_rgb_masked;
     Mat src_rgbl_masked;
@@ -37,9 +37,6 @@ public:
     Mat weights_masked_norm;
     int masked_len;
     string distance;
-    double xtol;
-    double ftol;
-    Mat dist;
     Mat ccm;
     Mat ccm0;
 
@@ -63,23 +60,19 @@ public:
        float weights_coeff;
        bool weights_color;
        string initial_method;
-       float xtol;
-       float ftol;
     } color_ca;*/
     //struct color_c* pcolor_c = &color_ca;
     //CCM_3x3(Mat src_, struct color_c* pcolor_c);
     CCM_3x3() {};
     CCM_3x3(Mat src_, Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, Mat dst_whites, 
-        string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method, double xtol_, double ftol_);
+        string colorchecker, vector<double> saturated_threshold, string colorspace, string linear_, float gamma, float deg, string distance_, string dist_illuminant, int dist_observer, Mat weights_list, double weights_coeff, bool weights_color, string initial_method);
 
     void prepare(void) {};
     Mat initial_white_balance(Mat src_rgbl, Mat dst_rgbl);
     Mat initial_least_square(Mat src_rgbl, Mat dst_rgbl);
-    double loss_rgb(Mat ccm);
     void calculate_rgb(void);
     double loss_rgbl(Mat ccm);
     void calculate_rgbl(void);
-    double loss(Mat ccm);
     void calculate(void);
     void value(int number);
     Mat infer(Mat img, bool L);
@@ -99,7 +92,7 @@ public:
     void value(int number) ;
 };
 
-Mat ColorChecker2005_LAB_D50_2 = (Mat_<double>(24, 3) <<
+static Mat ColorChecker2005_LAB_D50_2 = (Mat_<double>(24, 3) <<
     37.986, 13.555, 14.059,
     65.711, 18.13, 17.81,
     49.927, -4.88, -21.925,
@@ -125,7 +118,7 @@ Mat ColorChecker2005_LAB_D50_2 = (Mat_<double>(24, 3) <<
     35.656, -0.421, -1.231,
     20.461, -0.079, -0.973);
 
-Mat ColorChecker2005_LAB_D65_2 = (Mat_<double>(24, 3) <<
+static Mat ColorChecker2005_LAB_D65_2 = (Mat_<double>(24, 3) <<
     37.542, 12.018, 13.33,
     65.2, 14.821, 17.545,
     50.366, -1.573, -21.431,
@@ -152,10 +145,10 @@ Mat ColorChecker2005_LAB_D65_2 = (Mat_<double>(24, 3) <<
     20.475, 0.049, -0.972);
 
 
-Mat Arange_18_24 = (Mat_<int>(1, 7) << 18, 19, 20, 21, 22, 23, 24);
+static Mat Arange_18_24 = (Mat_<int>(1, 7) << 18, 19, 20, 21, 22, 23, 24);
 
-ColorChecker colorchecker_Macbeth = ColorChecker(ColorChecker2005_LAB_D50_2, "LAB", IO("D65", 2), Arange_18_24);
-ColorChecker colorchecker_Macbeth_D65_2 = ColorChecker(ColorChecker2005_LAB_D65_2, "LAB", IO("D65", 2), Arange_18_24);
+static ColorChecker colorchecker_Macbeth = ColorChecker(ColorChecker2005_LAB_D50_2, "LAB", IO("D50", 2), Arange_18_24);
+static ColorChecker colorchecker_Macbeth_D65_2 = ColorChecker(ColorChecker2005_LAB_D65_2, "LAB", IO("D65", 2), Arange_18_24);
 
 
 #endif
