@@ -2,45 +2,8 @@
 #define COLORSPACE_H
 
 #include "utils.h"
-#include "IO.h"
 
-using namespace std;
-using namespace cv;
-
-class RGB_Base
-{
-public:
-    double xr;
-    double yr;
-    double xg;
-    double yg;
-    double xb;
-    double yb;
-    IO io_base;
-    double gamma;
-    Mat _M_RGBL2XYZ_base;
-    map<IO, vector<Mat>> _M_RGBL2XYZ;
-    IO _default_io;
-
-    RGB_Base();
-
-    virtual Mat cal_M_RGBL2XYZ_base();
-    virtual Mat M_RGBL2XYZ_base();
-    virtual IO choose_io(IO io);
-    virtual void set_default(IO io);
-    virtual Mat M_RGBL2XYZ(IO io, bool rev = false);
-    virtual Mat rgbl2xyz(Mat rgbl, IO io);
-    virtual Mat xyz2rgbl(Mat xyz, IO io);
-    virtual Mat rgb2rgbl(Mat rgb);
-    virtual Mat rgbl2rgb(Mat rgbl);
-    virtual Mat rgb2xyz(Mat rgb, IO io);
-    virtual Mat xyz2rgb(Mat xyz, IO io);
-    virtual Mat rgbl2lab(Mat rgbl, IO io);
-    virtual Mat rgb2lab(Mat rgb, IO io);
-};
-
-
-class sRGB_Base : public RGB_Base
+class RGBBase
 {
 public:
     double xr;
@@ -52,69 +15,105 @@ public:
     double alpha;
     double beta;
     double phi;
-    double gamma;
     double _K0;
+    IO io_base;
+    double gamma;
+    cv::Mat _M_RGBL2XYZ_base;
+    map<IO, vector<cv::Mat>> _M_RGBL2XYZ;
+    IO _default_io;
 
-    sRGB_Base();
+    RGBBase();
 
-    double K0();
-    double _rgb2rgbl_ele(double x);
-    Mat rgb2rgbl(Mat rgb);
-    double _rgbl2rgb_ele(double x);
-    Mat rgbl2rgb(Mat rgbl);
+    virtual cv::Mat cal_M_RGBL2XYZ_base();
+    virtual cv::Mat M_RGBL2XYZ_base();
+    virtual IO choose_io(IO io);
+    virtual void set_default(IO io);
+    virtual cv::Mat M_RGBL2XYZ(IO io, bool rev = false);
+    virtual cv::Mat rgbl2xyz(cv::Mat rgbl, IO io);
+    virtual cv::Mat xyz2rgbl(cv::Mat xyz, IO io);
+    virtual cv::Mat rgb2rgbl(cv::Mat rgb);
+    virtual cv::Mat rgbl2rgb(cv::Mat rgbl);
+    virtual cv::Mat rgb2xyz(cv::Mat rgb, IO io);
+    virtual cv::Mat xyz2rgb(cv::Mat xyz, IO io);
+    virtual cv::Mat rgbl2lab(cv::Mat rgbl, IO io);
+    virtual cv::Mat rgb2lab(cv::Mat rgb, IO io);
 };
 
-
-class sRGB : public sRGB_Base
+class sRGBBase : public RGBBase
 {
 public:
-    Mat _M_RGBL2XYZ_base;
-    sRGB() : sRGB_Base() {
-        Mat _M_RGBL2XYZ_base = (Mat_<double>(3, 3) <<
+    sRGBBase() : RGBBase() 
+    {
+        xr = 0.6400;
+        yr = 0.3300;
+        xg = 0.3000;
+        yg = 0.6000;
+        xb = 0.1500;
+        yb = 0.0600;
+        alpha = 1.055;
+        beta = 0.0031308;
+        phi = 12.92;
+        gamma = 2.4;
+    }
+    double K0();
+    double _rgb2rgbl_ele(double x);
+    cv::Mat rgb2rgbl(cv::Mat rgb);
+    double _rgbl2rgb_ele(double x);
+    cv::Mat rgbl2rgb(cv::Mat rgbl);
+};
+
+class sRGB : public sRGBBase
+{
+public:
+    sRGB() : sRGBBase() 
+    {
+        _M_RGBL2XYZ_base = (cv::Mat_<double>(3, 3) <<
             0.41239080, 0.35758434, 0.18048079,
             0.21263901, 0.71516868, 0.07219232,
             0.01933082, 0.11919478, 0.95053215);
     }
 };
 
-
-class AdobeRGB : public RGB_Base {
+class AdobeRGB : public RGBBase {
 public:
-    using RGB_Base::RGB_Base;
+    using RGBBase::RGBBase;
 };
 
-
-class WideGamutRGB : public RGB_Base {
+class WideGamutRGB : public RGBBase 
+{
 public:
-    WideGamutRGB() : RGB_Base() {
+    WideGamutRGB() : RGBBase() 
+    {
         xr = 0.7347;
         yr = 0.2653;
         xg = 0.1152;
         yg = 0.8264;
         xb = 0.1566;
         yb = 0.0177;
-        io_base = IO("D65", 2);
+        io_base = D65_2;
     }
 };
 
-
-class ProPhotoRGB : public RGB_Base {
+class ProPhotoRGB : public RGBBase 
+{
 public:
-    ProPhotoRGB() : RGB_Base() {
+    ProPhotoRGB() : RGBBase() 
+    {
         xr = 0.734699;
         yr = 0.265301;
         xg = 0.159597;
         yg = 0.820403;
         xb = 0.036598;
         yb = 0.000105;
-        io_base = IO("D65", 2);
+        io_base = D65_2;
     }
 };
 
-
-class DCI_P3_RGB : public RGB_Base {
+class DCIP3RGB : public RGBBase 
+{
 public:
-    DCI_P3_RGB() : RGB_Base() {
+    DCIP3RGB() : RGBBase() 
+    {
         xr = 0.680;
         yr = 0.32;
         xg = 0.265;
@@ -124,10 +123,11 @@ public:
     }
 };
 
-
-class AppleRGB : public RGB_Base {
+class AppleRGB : public RGBBase 
+{
 public:
-    AppleRGB() : RGB_Base() {
+    AppleRGB() : RGBBase() 
+    {
         xr = 0.626;
         yr = 0.34;
         xg = 0.28;
@@ -138,10 +138,11 @@ public:
     }
 };
 
-
-class REC_709_RGB : public sRGB_Base {
+class REC709RGB : public sRGBBase 
+{
 public:
-    REC_709_RGB() : sRGB_Base() {
+    REC709RGB() : sRGBBase() 
+    {
         xr = 0.64;
         yr = 0.33;
         xg = 0.3;
@@ -155,10 +156,11 @@ public:
     }
 };
 
-
-class REC_2020_RGB : public sRGB_Base {
+class REC2020RGB : public sRGBBase 
+{
 public:
-    REC_2020_RGB() : sRGB_Base() {
+    REC2020RGB() : sRGBBase() 
+    {
         xr = 0.708;
         yr = 0.292;
         xg = 0.17;
@@ -172,8 +174,6 @@ public:
     }
 };
 
-
-RGB_Base* get_colorspace(string colorspace);
-
+RGBBase* getColorspace(string colorspace);
 
 #endif
