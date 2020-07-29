@@ -12,23 +12,23 @@ ColorChecker::ColorChecker(cv::Mat color, string colorspace, IO io_, cv::Mat whi
 	// color and correlated color space
 	if (colorspace == "LAB")
 	{
-		this->lab = color;
-		this->io = io_;
+		lab = color;
+		io = io_;
 	}
 	else
 	{
-		this->rgb = color;
-		this->cs = getColorspace(colorspace);
+		rgb = color;
+		cs = getColorspace(colorspace);
 	}
 	// white_mask& color_mask
 	vector<double> white_m(color.rows, 1);
-	if (!whites.empty())
+	if (whites.data)
 	{
 		for (int i = 0; i < whites.cols; i++)
 		{
 			white_m[whites.at<double>(0, i)] = 0;
 		}
-		this->white_mask = cv::Mat(white_m, true);
+		white_mask = cv::Mat(white_m, true);
 	}
 	color_mask = cv::Mat(white_m, true);
 }
@@ -37,30 +37,30 @@ ColorChecker::ColorChecker(cv::Mat color, string colorspace, IO io_, cv::Mat whi
 ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, string colorspace, IO io_)
 {
 	// colorchecker
-	this->cc = colorchecker;
+	cc = colorchecker;
 
 	// color space
-	this->cs = getColorspace(colorspace);
-	this->io = io_;
+	cs = getColorspace(colorspace);
+	io = io_;
 
 	// colors after conversion
-	if (this->cc.lab.data)
+	if (cc.lab.data)
 	{
-		this->lab = lab2lab(this->cc.lab, cc.io, io_);
-		this->xyz = lab2xyz(lab, io_);
-		this->rgbl = this->cs->xyz2rgbl(this->xyz, io_);
-		this->rgb = cs->rgbl2rgb(this->rgbl);
+		lab = lab2lab(cc.lab, cc.io, io_);
+		xyz = lab2xyz(lab, io_);
+		rgbl = cs->xyz2rgbl(xyz, io_);
+		rgb = cs->rgbl2rgb(rgbl);
 	}
 	else
 	{
-		this->rgb = cs->xyz2rgb(cc.cs->rgb2xyz(cc.rgb, D65_2), D65_2);
-		this->rgbl = cs->rgb2rgbl(rgb);
-		this->xyz = cs->rgbl2xyz(rgbl, io);
-		this->lab = xyz2lab(xyz, io);
+		rgb = cs->xyz2rgb(cc.cs->rgb2xyz(cc.rgb, D65_2), D65_2);
+		rgbl = cs->rgb2rgbl(rgb);
+		xyz = cs->rgbl2xyz(rgbl, io);
+		lab = xyz2lab(xyz, io);
 	}
-	this->grayl = xyz2grayl(xyz);
+	grayl = xyz2grayl(xyz);
 
 	// white_mask & color_mask
-	this->white_mask = cc.white_mask;
-	this->color_mask = cc.color_mask;
+	white_mask = cc.white_mask;
+	color_mask = cc.color_mask;
 }
