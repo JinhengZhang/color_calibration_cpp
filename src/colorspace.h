@@ -3,6 +3,11 @@
 
 #include "utils.h"
 
+/*
+    base of RGB color space;
+    the argument values are from AdobeRGB;
+    Data from https://en.wikipedia.org/wiki/Adobe_RGB_color_space
+*/
 class RGBBase
 {
 public:
@@ -39,11 +44,17 @@ public:
     virtual cv::Mat rgb2lab(cv::Mat rgb, IO io);
 };
 
+/*
+    base of sRGB-like color space;
+    the argument values are from sRGB;
+    data from https://en.wikipedia.org/wiki/SRGB
+*/
 class sRGBBase : public RGBBase
-{
+{  
 public:
-    sRGBBase() : RGBBase() 
+    sRGBBase():RGBBase()
     {
+        // primaries
         xr = 0.6400;
         yr = 0.3300;
         xg = 0.3000;
@@ -55,6 +66,7 @@ public:
         phi = 12.92;
         gamma = 2.4;
     }
+    
     double K0();
     double _rgb2rgbl_ele(double x);
     cv::Mat rgb2rgbl(cv::Mat rgb);
@@ -62,6 +74,7 @@ public:
     cv::Mat rgbl2rgb(cv::Mat rgbl);
 };
 
+/* data from https ://en.wikipedia.org/wiki/SRGB */
 class sRGB : public sRGBBase
 {
 public:
@@ -74,11 +87,13 @@ public:
     }
 };
 
-class AdobeRGB : public RGBBase {
+class AdobeRGB : public RGBBase 
+{
 public:
     using RGBBase::RGBBase;
 };
 
+/* data from https://en.wikipedia.org/wiki/Wide-gamut_RGB_color_space */
 class WideGamutRGB : public RGBBase 
 {
 public:
@@ -94,6 +109,7 @@ public:
     }
 };
 
+/* data from https://en.wikipedia.org/wiki/ProPhoto_RGB_color_space */
 class ProPhotoRGB : public RGBBase 
 {
 public:
@@ -109,6 +125,7 @@ public:
     }
 };
 
+/* data from https://en.wikipedia.org/wiki/DCI-P3 */
 class DCIP3RGB : public RGBBase 
 {
 public:
@@ -123,6 +140,7 @@ public:
     }
 };
 
+/* data from http://www.brucelindbloom.com/index.html?WorkingSpaceInfo.html */
 class AppleRGB : public RGBBase 
 {
 public:
@@ -138,6 +156,7 @@ public:
     }
 };
 
+/* data from https://en.wikipedia.org/wiki/Rec._709 */
 class REC709RGB : public sRGBBase 
 {
 public:
@@ -156,6 +175,7 @@ public:
     }
 };
 
+/* data from https://en.wikipedia.org/wiki/Rec._2020 */
 class REC2020RGB : public sRGBBase 
 {
 public:
