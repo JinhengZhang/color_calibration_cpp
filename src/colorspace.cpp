@@ -63,11 +63,12 @@ cv::Mat RGBBase::M_RGBL2XYZ_base()
 /* if io is unset, use io of this RGB color space */
 IO RGBBase::choose_io(IO io) 
 {
-    if (io.m_illuminant.length() != 0) 
+    IO test_;
+    if (io == test_)
     {
-        return io;
+        return  _default_io;
     }
-    return _default_io;
+    return io;
 }
 
 void RGBBase::set_default(IO io) 
@@ -86,7 +87,7 @@ cv::Mat RGBBase::M_RGBL2XYZ(IO io, bool rev)
     {
         return _M_RGBL2XYZ[io][rev ? 1 : 0];
     }
-    if (io.m_illuminant == io_base.m_illuminant && io.m_observer == io_base.m_observer) 
+    if (io == io_base) 
     {
         _M_RGBL2XYZ[io] = { M_RGBL2XYZ_base(), M_RGBL2XYZ_base().inv() };
         return _M_RGBL2XYZ[io][rev ? 1 : 0];
