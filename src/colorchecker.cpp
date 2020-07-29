@@ -1,7 +1,15 @@
 #include "colorchecker.h"
 
+/*
+	the colorchecker;
+	color: reference colors of colorchecker;
+	colorspace: 'LAB' or some 'RGB' color space;
+	io: only valid if colorspace is 'LAB';
+	whites: the indice list of gray colors of the reference colors;
+*/
 ColorChecker::ColorChecker(cv::Mat color, string colorspace, IO io_, cv::Mat whites) 
 {
+	// color and correlated color space
 	if (colorspace == "LAB")
 	{
 		this->lab = color;
@@ -12,6 +20,7 @@ ColorChecker::ColorChecker(cv::Mat color, string colorspace, IO io_, cv::Mat whi
 		this->rgb = color;
 		this->cs = getColorspace(colorspace);
 	}
+	// white_mask& color_mask
 	vector<double> white_m(color.rows, 1);
 	if (!whites.empty())
 	{
@@ -24,12 +33,18 @@ ColorChecker::ColorChecker(cv::Mat color, string colorspace, IO io_, cv::Mat whi
 	color_mask = cv::Mat(white_m, true);
 }
 
+/* the colorchecker adds the color space for conversion for color distance; */
 ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, string colorspace, IO io_)
 {
+	// colorchecker
 	this->cc = colorchecker;
+
+	// color space
 	this->cs = getColorspace(colorspace);
 	this->io = io_;
-	if (!this->cc.lab.empty())
+
+	// colors after conversion
+	if (this->cc.lab.data)
 	{
 		this->lab = lab2lab(this->cc.lab, cc.io, io_);
 		this->xyz = lab2xyz(lab, io_);
@@ -44,6 +59,8 @@ ColorCheckerMetric::ColorCheckerMetric(ColorChecker colorchecker, string colorsp
 		this->lab = xyz2lab(xyz, io);
 	}
 	this->grayl = xyz2grayl(xyz);
+
+	// white_mask & color_mask
 	this->white_mask = cc.white_mask;
 	this->color_mask = cc.color_mask;
 }
