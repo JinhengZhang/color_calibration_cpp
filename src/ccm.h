@@ -97,7 +97,7 @@ using namespace cv;
     gamma:
         the gamma value of gamma correction;
         NOTICE: only valid when linear is set to "gamma";
-        type: float;
+        type: double;
 
     deg:
         the degree of linearization polynomial;
@@ -141,13 +141,13 @@ using namespace cv;
 
     weights_coeff:
         the exponent number of L* component of the reference color in CIE Lab color space;
-        type: float
+        type: double
 
     weights_color:
         if it is set to True, only non-gray color participate in the calculation
         of the loss function.
         NOTICE: only valid when dst_whites is assigned.
-        type: float
+        type: double
 
     ============== split line =====================
     initial_method:
@@ -219,42 +219,19 @@ public:
     cv::Mat ccm;
     cv::Mat ccm0;
 
-    /*struct color_c {
-       cv::Mat dst;
-       string dst_colorspace;
-       string dst_illuminant;
-       string dst_observer;
-       int dst_whites;
-       string colorchecker;
-       string ccm_shape;
-       float* saturated_threshold;
-       string colorspace;
-       string linear;
-       float gamma;
-       float deg;
-       string distance;
-       string dist_illuminant;
-       string dist_observer;
-       cv::Mat weights_list;
-       float weights_coeff;
-       bool weights_color;
-       string initial_method;
-       float xtol;
-       float ftol;
-    } color_ca;*/
-    //struct color_c* pcolor_c = &color_ca;
-    //CCM_3x3(cv::Mat src_, struct color_c* pcolor_c);
     CCM_3x3() {};
-    CCM_3x3(cv::Mat src_, cv::Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, 
-        cv::Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, 
-        string linear_, double gamma, int deg, string distance_, string dist_illuminant, int dist_observer, 
-        cv::Mat weights_list, double weights_coeff, bool weights_color, string initial_method, string shape);
+    CCM_3x3(cv::Mat src_, cv::Mat dst, string dst_illuminant, int dst_observer, cv::Mat dst_whites, 
+        cv::Mat weights_list, string dst_colorspace = "sRGB", vector<double> saturated_threshold = { 0.02, 0.98 },
+        string colorchecker = "Macbeth_D65_2", string linear_="LinearGamma", double gamma=2.2, 
+        int deg=3, string distance_="de00", string dist_illuminant = "D65", int dist_observer=2,
+        double weights_coeff=0, bool weights_color = false, string initial_method="least_square", 
+        string colorspace = "sRGB", string ccm_shape="3x3");
 
     virtual void prepare(void) {}
     cv::Mat initial_white_balance(cv::Mat src_rgbl, cv::Mat dst_rgbl);
     cv::Mat initial_least_square(cv::Mat src_rgbl, cv::Mat dst_rgbl);
     void calculate_rgb(void);
-    double loss_rgbl(cv::Mat ccm);
+    double loss_rgbl(void);
     void calculate_rgbl(void);
     void calculate(void);
     void value(int number);
