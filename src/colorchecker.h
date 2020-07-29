@@ -5,6 +5,14 @@
 #include <string>
 #include "colorspace.h"
 
+/*
+	Difference between ColorChecker and ColorCheckerMetric
+	The instance of ColorChecker describe the colorchecker by color values,
+	color spaceand gray indice, which are stable for a colorchecker.
+	The instance of ColorCheckerMetric adds the color space which is associated with
+	the color distance functionand the colorchecker converts to.
+*/
+
 class ColorChecker
 {
 public:
