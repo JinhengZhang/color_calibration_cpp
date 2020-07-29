@@ -2,19 +2,30 @@
 
 RGBBase::RGBBase(void) 
 {
+    // IO
     this->xr = 0.6400;
     this->yr = 0.3300;
     this->xg = 0.21;
     this->yg = 0.71;
     this->xb = 0.1500;
     this->yb = 0.0600;
+
+    // linearization
     this->io_base = D65_2;
     this->gamma = 2.2;
-    this->_M_RGBL2XYZ_base = NULL;
+
+    // to XYZ
+    // M_RGBL2XYZ_base is matrix without chromatic adaptation
+    // M_RGBL2XYZ is the one with
+    // the _ prefix is the storage of calculated results
     this->_M_RGBL2XYZ = {};
     this->_default_io = D65_2;
 }
 
+/*
+    calculation of M_RGBL2XYZ_base;
+    see ColorSpace.pdf for details;
+*/
 cv::Mat RGBBase::cal_M_RGBL2XYZ_base() 
 {
     cv::Mat XYZr, XYZg, XYZb;
@@ -39,6 +50,7 @@ cv::Mat RGBBase::cal_M_RGBL2XYZ_base()
     return _M_RGBL2XYZ_base;
 }
 
+/* get M_RGBL2XYZ_base */
 cv::Mat RGBBase::M_RGBL2XYZ_base() 
 {
     if (!_M_RGBL2XYZ_base.empty()) 
@@ -48,6 +60,7 @@ cv::Mat RGBBase::M_RGBL2XYZ_base()
     return cal_M_RGBL2XYZ_base();
 }
 
+/* if io is unset, use io of this RGB color space */
 IO RGBBase::choose_io(IO io) 
 {
     if (io.m_illuminant.length() != 0) 
@@ -62,6 +75,10 @@ void RGBBase::set_default(IO io)
     _default_io = io;
 }
 
+/*
+    calculation of M_RGBL2XYZ;
+    see ColorSpace.pdf for details;
+*/
 cv::Mat RGBBase::M_RGBL2XYZ(IO io, bool rev) 
 {
     io = choose_io(io);
@@ -137,7 +154,7 @@ double sRGBBase::K0()
 }
 
 
-double  sRGBBase::_rgb2rgbl_ele(double x) 
+double sRGBBase::_rgb2rgbl_ele(double x) 
 {
     if (x > K0()) 
     {
@@ -153,8 +170,11 @@ double  sRGBBase::_rgb2rgbl_ele(double x)
     }
 }
 
-
-cv::Mat  sRGBBase::rgb2rgbl(cv::Mat rgb) 
+/*
+    linearization
+    see ColorSpace.pdf for details;
+*/
+cv::Mat sRGBBase::rgb2rgbl(cv::Mat rgb) 
 {
     int height = rgb.rows;
     int width = rgb.cols;
@@ -169,7 +189,6 @@ cv::Mat  sRGBBase::rgb2rgbl(cv::Mat rgb)
     }
     return rgb;
 }
-
 
 double  sRGBBase::_rgbl2rgb_ele(double x) 
 {
@@ -187,7 +206,10 @@ double  sRGBBase::_rgbl2rgb_ele(double x)
     }
 }
 
-
+/*
+    delinearization
+    see ColorSpace.pdf for details;
+*/
 cv::Mat sRGBBase::rgbl2rgb(cv::Mat rgbl) 
 {
     cv::Mat rgbl2rgbres(rgbl.size(), rgbl.type());
@@ -205,7 +227,7 @@ cv::Mat sRGBBase::rgbl2rgb(cv::Mat rgbl)
     return rgbl2rgbres;
 }
 
-
+/* get colorspace by str */
 RGBBase* getColorspace(string colorspace) 
 {
     RGBBase* p = new RGBBase;
