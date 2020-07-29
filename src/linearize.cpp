@@ -23,9 +23,9 @@ cv::Mat maskCopyto(cv::Mat src, cv::Mat mask)
     return src_;
 }
 
-LinearGamma::LinearGamma(float gamma_, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
+LinearGamma::LinearGamma(double gamma_, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
 {
-    this->gamma = gamma_;
+    gamma = gamma_;
 }
 
 cv::Mat LinearGamma::linearize(cv::Mat inp) 
@@ -33,7 +33,7 @@ cv::Mat LinearGamma::linearize(cv::Mat inp)
     return gammaCorrection(inp, gamma);
 }
 
-LinearColorPolyfit::LinearColorPolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) 
+LinearColorPolyfit::LinearColorPolyfit(double gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
 {
     cv::Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     cv::Mat src_(countNonZero(mask), 1, src.type());
@@ -74,7 +74,7 @@ cv::Mat LinearColorPolyfit::linearize(cv::Mat inp)
     return res;
 }
 
-LinearColorLogpolyfit::LinearColorLogpolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) 
+LinearColorLogpolyfit::LinearColorLogpolyfit(double gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
 {
     cv::Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     cv::Mat src_(countNonZero(mask), 1, src.type());
@@ -118,12 +118,12 @@ cv::Mat LinearColorLogpolyfit::linearize(cv::Mat inp)
     return res;
 }
 
-LinearGrayPolyfit::LinearGrayPolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) 
+LinearGrayPolyfit::LinearGrayPolyfit(double gamma, int deg_, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
 {
     cv::Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1]) & ~cc.white_mask;
     cv::Mat src_(countNonZero(mask), 1, src.type());
     cv::Mat dst_(countNonZero(mask), 1, cc.grayl.type());
-    this->deg = deg;
+    deg = deg_;
     cv::Mat src_gray = maskCopyto(src, mask);
 
     // the grayscale function is approximate for src is in relative color space;
@@ -154,7 +154,7 @@ cv::Mat LinearGrayPolyfit::linearize(cv::Mat inp)
 }
 
 
-LinearGrayLogpolyfit::LinearGrayLogpolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) 
+LinearGrayLogpolyfit::LinearGrayLogpolyfit(double gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold)
 {
     cv::Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1]) & ~cc.white_mask;
     this->deg = deg;
