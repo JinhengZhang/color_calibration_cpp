@@ -2,17 +2,24 @@
 
 extern int loss_F_count = 0;
 
+// After being called, the method produce a CCM_3x3 instance(a color correction model in fact) for inference.
 CCM_3x3::CCM_3x3(cv::Mat src_, cv::Mat dst, string dst_colorspace, string dst_illuminant, int dst_observer, 
     cv::Mat dst_whites, string colorchecker, vector<double> saturated_threshold, string colorspace, 
     string linear_, double gamma, int deg, string distance_, string dist_illuminant, int dist_observer, 
     cv::Mat weights_list, double weights_coeff, bool weights_color, string initial_method, string ccm_shape)
 {
     this->shape = (ccm_shape == "3x3") ? 3 : 4;
+
+    // detected colors
     this->src = src_;
+
+    // the absolute RGB color space that detected colors convert to
     IO dist_io = IO(dist_illuminant, dist_observer);
     this->cs = getColorspace(colorspace);
     cs->set_default(dist_io);
     ColorChecker cc_;
+
+    // see notes of colorchecker.py for difference between ColorCheckerand and ColorCheckerMetric
     if (!dst.empty()) 
     {
         cc_ = ColorChecker(dst, dst_colorspace, IO(dst_illuminant, dst_observer), dst_whites);
@@ -26,8 +33,11 @@ CCM_3x3::CCM_3x3(cv::Mat src_, cv::Mat dst, string dst_colorspace, string dst_il
         cc_ = ColorChecker(ColorChecker2005_LAB_D50_2, "LAB", D50_2, Arange_18_24);
     }
     this->cc = ColorCheckerMetric(cc_, colorspace, dist_io);
+
+    // linear method
     this->linear = getLinear(linear_, gamma, deg, this->src, this->cc, saturated_threshold);
 
+    // weights
     if (!weights_list.empty()) 
     {
         this->weights = weights_list;
@@ -42,6 +52,9 @@ CCM_3x3::CCM_3x3(cv::Mat src_, cv::Mat dst, string dst_colorspace, string dst_il
         this->weights = weights_;
     }
 
+    // mask
+    // weight_mask selects non - gray colors if weights_color is True;
+    // saturate_mask select non - saturated colors;
     cv::Mat weight_mask = cv::Mat::ones(src.rows, 1, CV_64FC1);
     if (weights_color) 
     {
@@ -50,12 +63,16 @@ CCM_3x3::CCM_3x3(cv::Mat src_, cv::Mat dst, string dst_colorspace, string dst_il
     cv::Mat saturate_mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
     this->mask = (weight_mask) & (saturate_mask);
     this->mask.convertTo(this->mask, CV_64F);
+
+    // prepare the data; _masked means colors having been filtered
     this->src_rgbl = this->linear->linearize(this->src);
     this->src_rgb_masked = maskCopyto(this->src, mask);
     this->src_rgbl_masked = maskCopyto(this->src_rgbl, mask);
     this->dst_rgb_masked = maskCopyto(this->cc.rgb, mask);
     this->dst_rgbl_masked = maskCopyto(this->cc.rgbl, mask);
     this->dst_lab_masked = maskCopyto(this->cc.lab, mask);
+
+    // prepare the weights;
     if (this->weights.data) 
     {
         this->weights_masked = maskCopyto(this->weights, this->mask);
@@ -66,7 +83,9 @@ CCM_3x3::CCM_3x3(cv::Mat src_, cv::Mat dst, string dst_colorspace, string dst_il
 
 void CCM_3x3::calc(string initial_method, string distance_) 
 {
+    // empty for CCM_3x3, not empty for CCM_4x3
     prepare();
+
     if (initial_method == "white_balance") 
     {
         this->ccm0 = this->initial_white_balance(this->src_rgbl_masked, this->dst_rgbl_masked);
@@ -75,6 +94,8 @@ void CCM_3x3::calc(string initial_method, string distance_)
     {
         this->ccm0 = initial_least_square(this->src_rgbl_masked, this->dst_rgbl_masked);
     }
+
+    // distance function may affect the loss function and the fitting function
     this->distance = distance_;
     if (this->distance == "rgb") 
     {
@@ -90,6 +111,11 @@ void CCM_3x3::calc(string initial_method, string distance_)
     }
 }
 
+/*
+    fitting nonlinear-optimization initial value by white balance:
+    res = diag(mean(s_r)/mean(d_r), mean(s_g)/mean(d_g), mean(s_b)/mean(d_b))
+    see CCM.pdf for details;
+*/
 cv::Mat CCM_3x3::initial_white_balance(cv::Mat src_rgbl, cv::Mat dst_rgbl) 
 {
     cv::Mat sChannels[4];
@@ -106,6 +132,11 @@ cv::Mat CCM_3x3::initial_white_balance(cv::Mat src_rgbl, cv::Mat dst_rgbl)
     return initial_white_balance_;
 }
 
+/*
+    fitting nonlinear-optimization initial value by least square:
+    res = np.linalg.lstsq(src_rgbl, dst_rgbl)
+    see CCM.pdf for details;
+*/
 cv::Mat CCM_3x3::initial_least_square(cv::Mat src_rgbl, cv::Mat dst_rgbl) 
 {
     cv::Mat res;
@@ -115,17 +146,25 @@ cv::Mat CCM_3x3::initial_least_square(cv::Mat src_rgbl, cv::Mat dst_rgbl)
     return res;
 }
 
+/*
+    loss function if distance function is rgb
+    it is square - sum of color difference between src_rgbl@ccm and dst
+*/
 class loss_rgb_F : public cv::MinProblemSolver::Function 
 {
 public:
     CCM_3x3 ccm_loss;
     int loss_shape;
 
-    loss_rgb_F(CCM_3x3 ccm3x3, int shape) {
+    loss_rgb_F(CCM_3x3 ccm3x3, int shape) 
+    {
         ccm_loss = ccm3x3;
         loss_shape = shape;
     }
-    int getDims() const { return 3 * loss_shape; }
+    int getDims() const 
+    { 
+        return 3 * loss_shape; 
+    }
     double calc(const double* x) const 
     {
         cv::Mat ccm(loss_shape, 3, CV_64F);
@@ -152,6 +191,7 @@ public:
     }
 };
 
+/* calculate ccm if distance function is rgb */
 void CCM_3x3::calculate_rgb(void) 
 {
     cv::Ptr<DownhillSolver> solver = cv::DownhillSolver::create();
@@ -168,6 +208,10 @@ void CCM_3x3::calculate_rgb(void)
     cout << "error:" << error << endl;
 }
 
+/*
+    loss function of de76 de94 and de00
+    it is square-sum of color difference between src_rgbl@ccm and dst
+*/
 double CCM_3x3::loss_rgbl(cv::Mat ccm) 
 {
     cv::Mat dist_;
@@ -182,6 +226,7 @@ double CCM_3x3::loss_rgbl(cv::Mat ccm)
     return ss[0];
 }
 
+/* calculate ccm if distance function is rgbl */
 void CCM_3x3::calculate_rgbl(void) 
 {
     if (!this->weights.data) 
@@ -200,6 +245,10 @@ void CCM_3x3::calculate_rgbl(void)
     cout << "error" << error << endl;
 }
 
+/*
+    loss function of de76 de94 and de00
+    it is square-sum of color difference between src_rgbl@ccm and dst
+*/
 class loss_F : public cv::MinProblemSolver::Function 
 {
 public:
@@ -243,6 +292,7 @@ public:
     }
 };
 
+/* calculate ccm if distance function is associated with CIE Lab color space */
 void CCM_3x3::calculate(void) 
 {
     cv::Ptr<DownhillSolver> solver = cv::DownhillSolver::create();
@@ -251,7 +301,7 @@ void CCM_3x3::calculate(void)
     cv::Mat reshapeccm = this->ccm0.reshape(0, 1);
     RNG step_rng;
     cv::Mat_<double>step(reshapeccm.size());
-    step_rng.fill(step, RNG::UNIFORM, -1., 1.);
+    step_rng.fill(step, RNG::UNIFORM, -1., 1.); 
     solver->setInitStep(step);
     double res = solver->minimize(reshapeccm);
     this->ccm = reshapeccm.reshape(0, this->shape);
@@ -259,6 +309,11 @@ void CCM_3x3::calculate(void)
     cout << "error:" << error << endl;
 }
 
+/*
+    evaluate the model by residual error, overall saturation and coverage volume;
+    see Algorithm.py for details;
+    NOTICE: The method is not yet complete.
+*/
 void CCM_3x3::value(int number) 
 {
     RNG rng;
@@ -276,6 +331,7 @@ void CCM_3x3::value(int number)
     cout << "dist_" << dist_ << endl;
 }
 
+/* infer using calculate ccm */
 cv::Mat CCM_3x3::infer(cv::Mat img, bool L) 
 {
     if (!this->ccm.data)
@@ -293,6 +349,10 @@ cv::Mat CCM_3x3::infer(cv::Mat img, bool L)
     return this->cs->rgbl2rgb(img_ccm);
 }
 
+/*
+    infer image and output as an BGR image with uint8 type
+    mainly for test or debug!
+*/
 cv::Mat CCM_3x3::infer_image(string imgfile, bool L, int inp_size, int out_size) 
 {
     cv::Mat img = imread(imgfile);
@@ -309,11 +369,13 @@ cv::Mat CCM_3x3::infer_image(string imgfile, bool L, int inp_size, int out_size)
     return out_img;
 }
 
+/* see CCM.pdf for details */
 void CCM_4x3::prepare(void) 
 {
     this->src_rgbl_masked = add_column(this->src_rgbl_masked);
 }
 
+/* convert matrix A to [A, 1] */
 cv::Mat CCM_4x3::add_column(cv::Mat arr) 
 {
     cv::Mat arr1 = cv::Mat::ones(arr.size(), CV_64F);
@@ -329,6 +391,10 @@ cv::Mat CCM_4x3::add_column(cv::Mat arr)
     return arr_out;
 }
 
+/* 
+    fitting nonlinear-optimization initial value by white balance:
+    see CCM.pdf for details; 
+*/
 cv::Mat CCM_4x3::initial_white_balance(cv::Mat src_rgbl, cv::Mat dst_rgbl) 
 {
     cv::Mat schannels[3];
@@ -345,6 +411,7 @@ cv::Mat CCM_4x3::initial_white_balance(cv::Mat src_rgbl, cv::Mat dst_rgbl)
     return initial_white_balance_;
 }
 
+/* infer using calculate ccm */
 cv::Mat CCM_4x3::infer(cv::Mat img, bool L) 
 {
     if (!this->ccm.data) 
@@ -360,6 +427,11 @@ cv::Mat CCM_4x3::infer(cv::Mat img, bool L)
     return this->cs->rgbl2rgb(img_ccm);
 }
 
+/*
+    evaluate the model by residual error, overall saturation and coverage volume;
+    see Algorithm.py for details;
+    NOTICE: The method is not yet complete.
+*/
 void CCM_4x3::value(int number) 
 {
     RNG rng;
