@@ -11,7 +11,7 @@ class Linear
 {
 public:
     Linear() {}
-    Linear(float gamma_, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {}
+    Linear(double gamma_, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) {}
 
     // calculate parameters
     virtual void calc(void) {}
@@ -44,7 +44,7 @@ class LinearGamma : public Linear
 public:
     double gamma;
     LinearGamma() {};
-    LinearGamma(float gamma_, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
+    LinearGamma(double gamma_, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     cv::Mat linearize(cv::Mat inp);
 };
 
@@ -61,7 +61,7 @@ public:
     cv::Mat dst;
     cv::Mat pr, pg, pb;
     LinearColorPolyfit() {};
-    LinearColorPolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
+    LinearColorPolyfit(double gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
 
     // monotonically increase is not guaranteed;
     // see Linearization.py for more details;
@@ -82,7 +82,7 @@ public:
     cv::Mat dst;
     cv::Mat pr, pg, pb;
     LinearColorLogpolyfit() {};
-    LinearColorLogpolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
+    LinearColorLogpolyfit(double gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
 
     // monotonically increase is not guaranteed;
     // see Linearization.py for more details;
@@ -103,7 +103,7 @@ public:
     cv::Mat dst;
     cv::Mat p;
     LinearGrayPolyfit() {};
-    LinearGrayPolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
+    LinearGrayPolyfit(double gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
     cv::Mat linearize(cv::Mat inp);
 };
@@ -121,7 +121,7 @@ public:
     cv::Mat dst;
     cv::Mat p;
     LinearGrayLogpolyfit() {};
-    LinearGrayLogpolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
+    LinearGrayLogpolyfit(double gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold);
     void calc(void);
     cv::Mat linearize(cv::Mat inp);
 };
