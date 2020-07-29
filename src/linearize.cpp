@@ -30,7 +30,7 @@ LinearGamma::LinearGamma(float gamma_, int deg, cv::Mat src, ColorCheckerMetric 
 
 cv::Mat LinearGamma::linearize(cv::Mat inp) 
 {
-    return gamma_correction(inp, gamma);
+    return gammaCorrection(inp, gamma);
 }
 
 LinearColorPolyfit::LinearColorPolyfit(float gamma, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) 
@@ -125,6 +125,9 @@ LinearGrayPolyfit::LinearGrayPolyfit(float gamma, int deg, cv::Mat src, ColorChe
     cv::Mat dst_(countNonZero(mask), 1, cc.grayl.type());
     this->deg = deg;
     cv::Mat src_gray = maskCopyto(src, mask);
+
+    // the grayscale function is approximate for src is in relative color space;
+    // see Linearization.py for more details;
     this->src = rgb2gray(src_gray);
     this->dst = maskCopyto(cc.grayl, mask);
     calc();
@@ -132,6 +135,8 @@ LinearGrayPolyfit::LinearGrayPolyfit(float gamma, int deg, cv::Mat src, ColorChe
 
 void LinearGrayPolyfit::calc(void)
 {
+    // monotonically increase is not guaranteed;
+    // see Linearization.py for more details;
     this->p = polyfit(src, dst, deg);
 }
 
@@ -154,6 +159,9 @@ LinearGrayLogpolyfit::LinearGrayLogpolyfit(float gamma, int deg, cv::Mat src, Co
     cv::Mat mask = saturate(src, saturated_threshold[0], saturated_threshold[1]) & ~cc.white_mask;
     this->deg = deg;
     cv::Mat src_gray = maskCopyto(src, mask);
+    
+    // the grayscale function is approximate for src is in relative color space;
+    // see Linearization.py for more details;
     this->src = rgb2gray(src_gray);
     this->dst = maskCopyto(cc.grayl, mask);
     calc();
@@ -161,6 +169,8 @@ LinearGrayLogpolyfit::LinearGrayLogpolyfit(float gamma, int deg, cv::Mat src, Co
 
 void LinearGrayLogpolyfit::calc(void)
 {
+    // monotonically increase is not guaranteed;
+    // see Linearization.py for more details;
     this->p = _polyfit(src, dst, deg);
 }
 
@@ -177,7 +187,9 @@ cv::Mat LinearGrayLogpolyfit::linearize(cv::Mat inp)
     return res;
 }
 
+/* values less than or equal to 0 cannot participate in calculation for features of the logarithmic function. */
 cv::Mat Linear::_polyfit(cv::Mat src, cv::Mat dst, int deg) {
+    // polyfit for s>0 and d>0
     cv::Mat mask_ = (src > 0) & (dst > 0);
     mask_.convertTo(mask_, CV_64F);
     cv::Mat src_, dst_;
@@ -239,7 +251,7 @@ cv::Mat Linear::poly1d(cv::Mat src, cv::Mat w, int deg)
     return res_polyfit;
 }
 
-
+/* get linear by str */
 Linear* getLinear(string linear, double gamma_, int deg, cv::Mat src, ColorCheckerMetric cc, vector<double> saturated_threshold) 
 {
     Linear* p = new Linear(gamma_, deg, src, cc, saturated_threshold);
