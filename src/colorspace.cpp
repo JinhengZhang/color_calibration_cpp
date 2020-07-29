@@ -3,23 +3,23 @@
 RGBBase::RGBBase(void) 
 {
     // IO
-    this->xr = 0.6400;
-    this->yr = 0.3300;
-    this->xg = 0.21;
-    this->yg = 0.71;
-    this->xb = 0.1500;
-    this->yb = 0.0600;
+    xr = 0.6400;
+    yr = 0.3300;
+    xg = 0.21;
+    yg = 0.71;
+    xb = 0.1500;
+    yb = 0.0600;
 
     // linearization
-    this->io_base = D65_2;
-    this->gamma = 2.2;
+    io_base = D65_2;
+    gamma = 2.2;
 
     // to XYZ
     // M_RGBL2XYZ_base is matrix without chromatic adaptation
     // M_RGBL2XYZ is the one with
     // the _ prefix is the storage of calculated results
-    this->_M_RGBL2XYZ = {};
-    this->_default_io = D65_2;
+    _M_RGBL2XYZ = {};
+    _default_io = D65_2;
 }
 
 /*
@@ -29,9 +29,9 @@ RGBBase::RGBBase(void)
 cv::Mat RGBBase::cal_M_RGBL2XYZ_base() 
 {
     cv::Mat XYZr, XYZg, XYZb;
-    XYZr = cv::Mat(xyY2XYZ(this->xr, this->yr), true);
-    XYZg = cv::Mat(xyY2XYZ(this->xg, this->yg), true);
-    XYZb = cv::Mat(xyY2XYZ(this->xb, this->yb), true);
+    XYZr = cv::Mat(xyY2XYZ(xr, yr), true);
+    XYZg = cv::Mat(xyY2XYZ(xg, yg), true);
+    XYZb = cv::Mat(xyY2XYZ(xb, yb), true);
     cv::Mat XYZw = cv::Mat(illuminants[io_base], true);
     cv::Mat XYZ_rgbl;
     XYZ_rgbl.push_back(XYZr);
@@ -53,7 +53,7 @@ cv::Mat RGBBase::cal_M_RGBL2XYZ_base()
 /* get M_RGBL2XYZ_base */
 cv::Mat RGBBase::M_RGBL2XYZ_base() 
 {
-    if (!_M_RGBL2XYZ_base.empty()) 
+    if (_M_RGBL2XYZ_base.data) 
     {
         return _M_RGBL2XYZ_base;
     }
