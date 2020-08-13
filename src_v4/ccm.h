@@ -16,8 +16,8 @@
 namespace cv {
     namespace ccm {
         enum CCM_TYPE {
-            ColorCorrectionModel_3x3,
-            ColorCorrectionModel_4x3
+            CCM_3x3,
+            CCM_4x3
         };
 
         class ColorCorrectionModel
@@ -46,7 +46,6 @@ namespace cv {
             double error;
             double xtol;
             double ftol;
-
             ColorCorrectionModel(cv::Mat src, Color dst, RGB_Base_ cs, std::string distance, LINEAR_TYPE linear,
                 double gamma, int deg, std::vector<double> saturated_threshold, cv::Mat weights_list, 
                 double weights_coeff, std::string initial_method, double xtol, double ftol);
@@ -57,14 +56,18 @@ namespace cv {
             cv::Mat initial_least_square(bool fit = false);
             void fitting(void);
             cv::Mat infer(cv::Mat img, bool L = false);
-            cv::Mat infer_image(std::string imgfile, bool L = false, int inp_size = 255, int out_size = 255);
+            cv::Mat infer_image(std::string imgfile, bool L = false, int inp_size = 255, int out_size = 255);//
         };
 
 
         class ColorCorrectionModel_3x3 : public ColorCorrectionModel 
         {
         public:
-            ColorCorrectionModel_3x3() : ColorCorrectionModel() {
+            
+            ColorCorrectionModel_3x3(cv::Mat src, Color dst, RGB_Base_ cs, std::string distance, LINEAR_TYPE linear,
+                double gamma, int deg, std::vector<double> saturated_threshold, cv::Mat weights_list,double weights_coeff, 
+                std::string initial_method, double xtol, double ftol) : ColorCorrectionModel(src, dst, cs, distance, 
+                    linear, gamma, deg, saturated_threshold, weights_list, weights_coeff, initial_method, xtol, ftol) {
                 shape = 9;
             }
         };
@@ -73,13 +76,19 @@ namespace cv {
         class ColorCorrectionModel_4x3 : public ColorCorrectionModel
         {
         public:
-            ColorCorrectionModel_4x3() : ColorCorrectionModel() {
+            ColorCorrectionModel_4x3(cv::Mat src, Color dst, RGB_Base_ cs, std::string distance, LINEAR_TYPE linear,
+                double gamma, int deg, std::vector<double> saturated_threshold, cv::Mat weights_list, double weights_coeff,
+                std::string initial_method, double xtol, double ftol) : ColorCorrectionModel(src, dst, cs, distance,
+                    linear, gamma, deg, saturated_threshold, weights_list, weights_coeff, initial_method, xtol, ftol) {
                 shape = 12;
             }
             cv::Mat prepare(cv::Mat arr);
         };
 
-        cv::Mat color_correction(CCM_TYPE ccm_type);
+
+        ColorCorrectionModel* color_correction(CCM_TYPE ccm_type, cv::Mat src, Color dst, RGB_Base_ cs, 
+            std::string distance, LINEAR_TYPE linear, double gamma, int deg, std::vector<double> saturated_threshold, 
+            cv::Mat weights_list, double weights_coeff, std::string initial_method, double xtol, double ftol);
     }
 }
 #endif

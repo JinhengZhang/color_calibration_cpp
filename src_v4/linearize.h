@@ -2,18 +2,17 @@
 #define LINEARIZE_H
 
 #include "utils.h"
-//#include "colorchecker.h"
 #include "color.h"
 
 namespace cv {
     namespace ccm {
         enum LINEAR_TYPE {
-            Linear_identity,
-            Linear_gamma,
-            Linear_color_polyfit,
-            Linear_color_logpolyfit,
-            Linear_gray_polyfit,
-            Linear_gray_logpolyfit
+            IDENTITY,
+            GAMMA,
+            COLORPOLYFIT,
+            COLORLOGPOLYFIT,
+            GRAYPOLYFIT,
+            GRAYLOGPOLYFIT
         };
 
 
@@ -23,6 +22,7 @@ namespace cv {
             cv::Mat p;
             Polyfit() {};
             Polyfit(cv::Mat s, cv::Mat d, int deg);
+            double _from_ew(double x);
             cv::Mat operator()(cv::Mat inp);
         };
 
@@ -57,7 +57,6 @@ namespace cv {
         {
         public:
             double gamma;
-            //Linear_gamma() {};
             Linear_gamma(double gamma) :gamma(gamma) {};
             cv::Mat linearize(cv::Mat inp);
         };
