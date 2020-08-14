@@ -28,7 +28,8 @@ namespace cv {
         cv::Mat Polyfit::operator()(cv::Mat inp) {
             return _elementwise(inp, [this](double a)->double {return _from_ew(a); });
         }
-
+        
+        /*
         cv::Mat Polyfit::operator()(cv::Mat inp) {
             cv::Mat res_polyfit(inp.size(), inp.type());//
             for (int i = 0; i < inp.rows; i++) {
@@ -42,7 +43,8 @@ namespace cv {
             }
             return res_polyfit;
         }
-
+        */
+        
         LogPolyfit::LogPolyfit(cv::Mat s, cv::Mat d, int deg) :deg(deg) {
             cv::Mat mask_ = (s > 0) & (d > 0);
             mask_.convertTo(mask_, CV_64F);
