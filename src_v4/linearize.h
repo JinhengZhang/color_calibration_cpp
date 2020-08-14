@@ -15,7 +15,7 @@ namespace cv {
             GRAYLOGPOLYFIT
         };
 
-
+        /* Polyfit model */
         class Polyfit {
         public:
             int deg;
@@ -26,7 +26,7 @@ namespace cv {
             cv::Mat operator()(cv::Mat inp);
         };
 
-
+        /* Logpolyfit model */
         class LogPolyfit {
         public:
             int deg;
@@ -36,23 +36,25 @@ namespace cv {
             cv::Mat operator()(cv::Mat inp);
         };
 
-
+        /* linearization base */
         class Linear
         {
         public:
             Linear() {};
+            // inference
             virtual cv::Mat linearize(cv::Mat inp) { return inp; };
+            // evaluate linearization model
             virtual void value(void) {};
         };
 
-
+        /* make no change */
         class Linear_identity : public Linear
         {
         public:
             using Linear::Linear;
         };
 
-
+        /* gamma correction */
         class Linear_gamma : public Linear
         {
         public:
@@ -61,18 +63,19 @@ namespace cv {
             cv::Mat linearize(cv::Mat inp);
         };
 
-
+        /* grayscale polynomial fitting */
         template <class T>
         class Linear_gray :public Linear {
         public:
             int deg;
             T p;
             Linear_gray(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs);
+            // monotonically increase is not guaranteed
             void calc(cv::Mat src, cv::Mat dst);
             cv::Mat linearize(cv::Mat inp);
         };
 
-
+        /* fitting channels respectively */
         template <class T>
         class Linear_color :public Linear {
         public:
@@ -81,10 +84,12 @@ namespace cv {
             T pg;
             T pb;
             Linear_color(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs);
+            // monotonically increase is not guaranteed
             void calc(cv::Mat src, cv::Mat dst);
             cv::Mat linearize(cv::Mat inp);
         };
 
+        /* get linearization method */
         Linear* get_linear(double gamma, int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs, LINEAR_TYPE lineat_type);
 
     }

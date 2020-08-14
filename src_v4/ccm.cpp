@@ -3,10 +3,10 @@
 namespace cv {
     namespace ccm {
         ColorCorrectionModel::ColorCorrectionModel(cv::Mat src, Color dst, RGB_Base_ cs, DISTANCE_TYPE distance,
-            LINEAR_TYPE linear, double gamma, int deg,
-            std::vector<double> saturated_threshold, cv::Mat weights_list, double weights_coeff,
-            INITIAL_METHOD_TYPE initial_method_type, double maxCount, double epsilon) :
-            src(src), dst(dst), cs(cs), distance(distance), maxCount(maxCount), epsilon(epsilon) {
+            LINEAR_TYPE linear, double gamma, int deg, std::vector<double> saturated_threshold, cv::Mat weights_list, 
+            double weights_coeff, INITIAL_METHOD_TYPE initial_method_type, double maxCount, double epsilon) :
+            src(src), dst(dst), cs(cs), distance(distance), maxCount(maxCount), epsilon(epsilon) 
+        {
             cv::Mat saturate_mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
             this->linear = get_linear(gamma, deg, this->src, this->dst, saturate_mask, this->cs, linear);
             _cal_weights_masks(weights_list, weights_coeff, saturate_mask);
@@ -25,8 +25,10 @@ namespace cv {
                 break;
             }
 
+            // empty for CCM_3x3, not empty for CCM_4x3
             prepare(this->src_rgbl);
 
+            // distance function may affect the loss function and the fitting function
             switch (distance)
             {
             case cv::ccm::RGBL :
@@ -39,6 +41,7 @@ namespace cv {
         }
 
         void ColorCorrectionModel::_cal_weights_masks(cv::Mat weights_list, double weights_coeff, cv::Mat saturate_mask) {
+            // weights
             if (weights_list.empty()) {
                 weights = weights_list;
             }
@@ -46,12 +49,14 @@ namespace cv {
                 pow(dst.toLuminant(dst.cs.io), weights_coeff, weights);
             }
 
+            // masks
             cv::Mat weight_mask = cv::Mat::ones(src.rows, 1, CV_64FC1);
             if (!weights.empty()) {
                 weight_mask = weights > 0;
             }
             this->mask = (weight_mask) & (saturate_mask);
 
+            // weights' mask
             if (!weights.empty()) {
                 cv::Mat weights_masked = mask_copyto(this->weights, this->mask);
                 weights = weights_masked / mean(weights_masked);
@@ -115,7 +120,7 @@ namespace cv {
                 Scalar ss = sum(dist_);
                 return ss[0];
             }
-        }
+        };
 
         void ColorCorrectionModel::fitting(void) {
             cv::Ptr<DownhillSolver> solver = cv::DownhillSolver::create();

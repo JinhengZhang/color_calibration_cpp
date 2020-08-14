@@ -24,13 +24,11 @@ namespace cv {
                 return res;
             }
         }
-        
-        /*
+
         cv::Mat Polyfit::operator()(cv::Mat inp) {
             return _elementwise(inp, [this](double a)->double {return _from_ew(a); });
         }
-        */
-        
+
         LogPolyfit::LogPolyfit(cv::Mat s, cv::Mat d, int deg) :deg(deg) {
             cv::Mat mask_ = (s > 0) & (d > 0);
             mask_.convertTo(mask_, CV_64F);
@@ -63,6 +61,7 @@ namespace cv {
         Linear_gray<T>::Linear_gray(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs) :deg(deg) {
             dst.get_gray();
             mask = mask & dst.grays;
+            // the grayscale function is approximate for src is in relative color space;
             src = rgb2gray(mask_copyto(src, mask));
             cv::Mat dst_ = mask_copyto(dst.toGray(cs.io), mask);
             calc(src, dst_);
