@@ -2,11 +2,11 @@
 
 namespace cv {
     namespace ccm {
-        ColorCorrectionModel::ColorCorrectionModel(cv::Mat src, Color dst, RGB_Base_ cs, std::string distance,
+        ColorCorrectionModel::ColorCorrectionModel(cv::Mat src, Color dst, RGB_Base_ cs, DISTANCE_TYPE distance,
             LINEAR_TYPE linear, double gamma, int deg,
             std::vector<double> saturated_threshold, cv::Mat weights_list, double weights_coeff,
-            std::string initial_method, double xtol, double ftol) :
-            src(src), dst(dst), cs(cs), distance(distance), xtol(xtol), ftol(ftol) {
+            INITIAL_METHOD_TYPE initial_method_type, double maxCount, double epsilon) :
+            src(src), dst(dst), cs(cs), distance(distance), maxCount(maxCount), epsilon(epsilon) {
             cv::Mat saturate_mask = saturate(src, saturated_threshold[0], saturated_threshold[1]);
             this->linear = get_linear(gamma, deg, this->src, this->dst, saturate_mask, this->cs, linear);
             _cal_weights_masks(weights_list, weights_coeff, saturate_mask);
@@ -15,22 +15,28 @@ namespace cv {
             this->dst = this->dst[mask];
             dst_rgbl = this->dst.to(*(this->cs.l)).colors;
 
-            if (initial_method == "white_balance") {
+            switch (initial_method_type)
+            {
+            case cv::ccm::WHITE_BALANCE :
                 initial_white_balance();
-            }
-            else if (initial_method == "least_square") {
+                break;
+            case cv::ccm::LEAST_SQUARE :
                 initial_least_square();
+                break;
             }
 
             prepare(this->src_rgbl);
 
-            if (distance == "rgbl") {
+            switch (distance)
+            {
+            case cv::ccm::RGBL :
                 initial_least_square(true);
-            }
-            else {
+                break;
+            default :
                 fitting();
             }
-        };
+            
+        }
 
         void ColorCorrectionModel::_cal_weights_masks(cv::Mat weights_list, double weights_coeff, cv::Mat saturate_mask) {
             if (weights_list.empty()) {
@@ -64,7 +70,7 @@ namespace cv {
             cv::Mat initial_white_balance_ = cv::Mat(initial_vec_, true).reshape(0, shape / 3);
 
             return initial_white_balance_;
-        };
+        }
 
         cv::Mat ColorCorrectionModel::initial_least_square(bool fit) {
             cv::Mat A, B, w;
@@ -86,7 +92,7 @@ namespace cv {
                 double sum = s[0];
                 error = sqrt(sum / masked_len);
             }
-        };
+        }
 
         class LossFunction : public cv::MinProblemSolver::Function {
         public:
@@ -109,16 +115,17 @@ namespace cv {
                 Scalar ss = sum(dist_);
                 return ss[0];
             }
-        };
+        }
 
         void ColorCorrectionModel::fitting(void) {
             cv::Ptr<DownhillSolver> solver = cv::DownhillSolver::create();
             cv::Ptr<LossFunction> ptr_F(new LossFunction(this));
             solver->setFunction(ptr_F);
             cv::Mat reshapeccm = ccm0.reshape(0, 1);
-            cv::Mat_<double>step(reshapeccm.size());
-            //此处增加step初始化值
+            cv::Mat step = cv::Mat::ones(reshapeccm.size(), CV_64F);
             solver->setInitStep(step);
+            TermCriteria termcrit = TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, maxCount, epsilon);
+            solver->setTermCriteria(termcrit);
             //cout << "reshapeccm" << reshapeccm << endl;
             double res = solver->minimize(reshapeccm);
             //cout << "reshapeccm" << reshapeccm << endl;
@@ -128,8 +135,7 @@ namespace cv {
             //cout << "res" << res << endl;
             double error = pow((res / masked_len), 0.5);
             //cout << "error:" << error << endl;
-
-        };
+        }
 
         cv::Mat ColorCorrectionModel::infer(cv::Mat img, bool L) {
             if (!ccm.data)
@@ -144,7 +150,7 @@ namespace cv {
                 return img_ccm;
             }
             return cs.fromL(img_ccm);
-        };
+        }
 
         cv::Mat ColorCorrectionModel::infer_image(std::string imgfile, bool L, int inp_size, int out_size) { 
             cv::Mat img = imread(imgfile);
@@ -159,7 +165,7 @@ namespace cv {
             cv::Mat out_img;
             cvtColor(img_out, out_img, COLOR_RGB2BGR);
             return out_img;
-        };
+        }
 
         cv::Mat ColorCorrectionModel_4x3::prepare(cv::Mat arr) {
             cv::Mat arr1 = cv::Mat::ones(arr.size(), CV_64F);
@@ -173,42 +179,42 @@ namespace cv {
             arrout_channel.push_back(arr1);
             merge(arrout_channel, arr_out);
             return arr_out;
-        };
+        }
 
         /*
         ColorCorrectionModel color_correction(cv::Mat src, Color dst, 
             RGB_Base_ cs, std::string distance, LINEAR_TYPE linear,
             double gamma, int deg, std::vector<double> saturated_threshold, cv::Mat weights_list,
-            double weights_coeff, std::string initial_method, double xtol, double ftol) {
+            double weights_coeff, std::string initial_method, double maxCount, double epsilon) {
             switch (ccm_type)
             {
             case cv::ccm::CCM_3x3:
                 ColorCorrectionModel_3x3 p(src, dst, cs, distance, linear,gamma, deg, 
-                    saturated_threshold, weights_list, weights_coeff, initial_method, xtol, ftol);
+                    saturated_threshold, weights_list, weights_coeff, initial_method, maxCount, epsilon);
                 return p;
                 break;
             case cv::ccm::CCM_4x3:
                 ColorCorrectionModel_4x3 p(src, dst, cs, distance, linear, gamma, deg,
-                    saturated_threshold, weights_list, weights_coeff, initial_method, xtol, ftol);
+                    saturated_threshold, weights_list, weights_coeff, initial_method, maxCount, epsilon);
                 return p;
                 break;
             }*/
 
         ColorCorrectionModel* color_correction(CCM_TYPE ccm_type, cv::Mat src, Color dst,
-            RGB_Base_ cs, std::string distance, LINEAR_TYPE linear,
+            RGB_Base_ cs, DISTANCE_TYPE distance, LINEAR_TYPE linear,
             double gamma, int deg, std::vector<double> saturated_threshold, cv::Mat weights_list,
-            double weights_coeff, std::string initial_method, double xtol, double ftol) {
+            double weights_coeff, INITIAL_METHOD_TYPE initial_method_type, double maxCount, double epsilon) {
             ColorCorrectionModel* p;
             switch (ccm_type)
             {
             case cv::ccm::CCM_3x3:
                 p = new ColorCorrectionModel_3x3(src, dst, cs, distance, linear, gamma, deg,
-                    saturated_threshold, weights_list, weights_coeff, initial_method, xtol, ftol);
+                    saturated_threshold, weights_list, weights_coeff, initial_method_type, maxCount, epsilon);
                 return p;
                 break;
             case cv::ccm::CCM_4x3:
                 p = new ColorCorrectionModel_4x3(src, dst, cs, distance, linear, gamma, deg,
-                    saturated_threshold, weights_list, weights_coeff, initial_method, xtol, ftol);
+                    saturated_threshold, weights_list, weights_coeff, initial_method_type, maxCount, epsilon);
                 return p;
                 break;
             }

@@ -15,7 +15,7 @@ namespace cv {
                 }
             }
             cv::solve(A, srcY, p, DECOMP_SVD);
-        };
+        }
 
         double Polyfit::_from_ew(double x) {
             double res = 0;
@@ -23,25 +23,11 @@ namespace cv {
                 res += pow(x, d) * p.at<double>(d, 0);
                 return res;
             }
-        };
-
-        cv::Mat Polyfit::operator()(cv::Mat inp) {
-            return _elementwise(inp, [this](double a)->double {return _from_ew(a); });
         }
         
         /*
         cv::Mat Polyfit::operator()(cv::Mat inp) {
-            cv::Mat res_polyfit(inp.size(), inp.type());//
-            for (int i = 0; i < inp.rows; i++) {
-                for (int j = 0; j < inp.cols; j++) {
-                    double res = 0;
-                    for (int d = 0; d <= deg; d++) {
-                        res += pow(inp.at<double>(i, j), d) * p.at<double>(d, 0);
-                        res_polyfit.at<double>(i, j) = res;
-                    }
-                }
-            }
-            return res_polyfit;
+            return _elementwise(inp, [this](double a)->double {return _from_ew(a); });
         }
         */
         
