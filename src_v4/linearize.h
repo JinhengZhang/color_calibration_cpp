@@ -1,13 +1,13 @@
-#ifndef LINEARIZE_H
-#define LINEARIZE_H
-
-#include "utils.h"
+#pragma once
+//#ifndef LINEARIZE_H
+//#define LINEARIZE_H
+#include<iostream>
 #include "color.h"
 
 namespace cv {
     namespace ccm {
         enum LINEAR_TYPE {
-            IDENTITY,
+            IDENTITY_,
             GAMMA,
             COLORPOLYFIT,
             COLORLOGPOLYFIT,
@@ -21,9 +21,32 @@ namespace cv {
             int deg;
             cv::Mat p;
             Polyfit() {};
-            Polyfit(cv::Mat s, cv::Mat d, int deg);
-            double _from_ew(double x);
-            cv::Mat operator()(cv::Mat inp);
+            //Polyfit(cv::Mat s, cv::Mat d, int deg);
+            Polyfit(cv::Mat s, cv::Mat d, int deg) :deg(deg) {
+                int npoints = s.checkVector(1);
+                int nypoints = d.checkVector(1);
+                cv::Mat_<double> srcX(s), srcY(d);
+                cv::Mat_<double> A = cv::Mat_<double>::ones(npoints, deg + 1);
+                for (int y = 0; y < npoints; ++y)
+                {
+                    for (int x = 1; x < A.cols; ++x)
+                    {
+                        A.at<double>(y, x) = srcX.at<double>(y) * A.at<double>(y, x - 1);
+                    }
+                }
+                cv::solve(A, srcY, p, DECOMP_SVD);
+                //std::cout << A << srcY << p << std::endl;
+            }
+            double _from_ew(double x) {
+                double res = 0;
+                for (int d = 0; d <= deg; d++) {
+                    res += pow(x, d) * p.at<double>(d, 0);
+                    return res;
+                }
+            };
+            cv::Mat operator()(cv::Mat inp) {
+                return _elementwise(inp, [this](double a)->double {return _from_ew(a); });
+            };
         };
 
         /* Logpolyfit model */
@@ -32,8 +55,30 @@ namespace cv {
             int deg;
             Polyfit p;
             LogPolyfit() {};
-            LogPolyfit(cv::Mat s, cv::Mat d, int deg);
-            cv::Mat operator()(cv::Mat inp);
+            //LogPolyfit(cv::Mat s, cv::Mat d, int deg);
+            LogPolyfit(cv::Mat s, cv::Mat d, int deg) :deg(deg) {
+                cv::Mat mask_ = (s > 0) & (d > 0);
+                //mask_.convertTo(mask_, CV_64F);
+                cv::Mat src_, dst_;
+                src_ = mask_copyto(s, mask_);
+                dst_ = mask_copyto(d, mask_);
+                std::cout << s << d<< std::endl;
+                cv::Mat s_, d_;
+                log(src_, s_);
+                log(dst_, d_);
+                p = Polyfit(s_, d_, deg);
+            }
+            cv::Mat operator()(cv::Mat inp) {
+                cv::Mat mask_ = inp >= 0;
+                cv::Mat y;
+                log(inp, y);
+                y = p(y);
+                cv::Mat y_;
+                exp(y, y_);
+                cv::Mat res;
+                y_.copyTo(res, mask_);
+                return res;
+            };
         };
 
         /* linearization base */
@@ -60,7 +105,9 @@ namespace cv {
         public:
             double gamma;
             Linear_gamma(double gamma) :gamma(gamma) {};
-            cv::Mat linearize(cv::Mat inp);
+            cv::Mat linearize(cv::Mat inp) {
+                return gamma_correction(inp, gamma);
+            };
         };
 
         /* grayscale polynomial fitting */
@@ -69,10 +116,22 @@ namespace cv {
         public:
             int deg;
             T p;
-            Linear_gray(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs);
+            //Linear_gray(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs);
+            Linear_gray(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs) :deg(deg) {
+                dst.get_gray();
+                mask = mask & dst.grays;
+                // the grayscale function is approximate for src is in relative color space;
+                src = rgb2gray(mask_copyto(src, mask));
+                cv::Mat dst_ = mask_copyto(dst.toGray(cs.io), mask);
+                calc(src, dst_);
+            }
             // monotonically increase is not guaranteed
-            void calc(cv::Mat src, cv::Mat dst);
-            cv::Mat linearize(cv::Mat inp);
+            void calc(cv::Mat src, cv::Mat dst) {
+                p = T(src, dst, deg);
+            };
+            cv::Mat linearize(cv::Mat inp) {
+                return p(inp);
+            };
         };
 
         /* fitting channels respectively */
@@ -83,16 +142,70 @@ namespace cv {
             T pr;
             T pg;
             T pb;
-            Linear_color(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs);
+            //Linear_color(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs);
+            Linear_color(int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs) :deg(deg) {
+                //dst.get_gray();
+                //mask = mask & dst.grays;
+                src = mask_copyto(src, mask);
+                cv::Mat dst_ = mask_copyto(dst.to(*cs.l).colors, mask);
+                calc(src, dst_);
+            }
             // monotonically increase is not guaranteed
-            void calc(cv::Mat src, cv::Mat dst);
-            cv::Mat linearize(cv::Mat inp);
+            void calc(cv::Mat src, cv::Mat dst) {
+                cv::Mat sChannels[3];
+                cv::Mat dChannels[3];
+                split(src, sChannels);
+                split(dst, dChannels);
+                pr = T(sChannels[0], dChannels[0], deg);
+                pg = T(sChannels[1], dChannels[1], deg);
+                pb = T(sChannels[2], dChannels[2], deg);
+            };
+            cv::Mat linearize(cv::Mat inp) {
+                cv::Mat channels[3];
+                split(inp, channels);
+                std::vector<cv::Mat> channel;
+                cv::Mat res;
+                channel.push_back(pr(channels[0]));
+                channel.push_back(pg(channels[1]));
+                channel.push_back(pb(channels[2]));
+                merge(channel, res);
+                return res;
+            };
         };
 
         /* get linearization method */
-        Linear* get_linear(double gamma, int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs, LINEAR_TYPE lineat_type);
-
+        Linear* get_linear(double gamma, int deg, cv::Mat src, Color dst, cv::Mat mask, RGB_Base_ cs, LINEAR_TYPE lineat_type)
+        {
+            Linear* p = new Linear();
+            switch (lineat_type)
+            {
+            case cv::ccm::IDENTITY_:
+                p = new Linear_identity();
+                return p;
+                break;
+            case cv::ccm::GAMMA:
+                p = new Linear_gamma(gamma);
+                return p;
+                break;
+            case cv::ccm::COLORPOLYFIT:
+                p = new Linear_color<Polyfit>(deg, src, dst, mask, cs);
+                return p;
+                break;
+            case cv::ccm::COLORLOGPOLYFIT:
+                p = new Linear_color<LogPolyfit>(deg, src, dst, mask, cs);
+                return p;
+                break;
+            case cv::ccm::GRAYPOLYFIT:
+                p = new Linear_gray<Polyfit>(deg, src, dst, mask, cs);
+                return p;
+                break;
+            case cv::ccm::GRAYLOGPOLYFIT:
+                p = new Linear_gray<LogPolyfit>(deg, src, dst, mask, cs);
+                return p;
+                break;
+            }
+        };
     }
 }
 
-#endif
+//#endif
