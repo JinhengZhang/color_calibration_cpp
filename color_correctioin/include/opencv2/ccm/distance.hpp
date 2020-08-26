@@ -1,7 +1,7 @@
 #ifndef DISTANCE_H
 #define DISTANCE_H
 
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 #include "opencv2/ccm/utils.hpp"
 
 namespace cv {

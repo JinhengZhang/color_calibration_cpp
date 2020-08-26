@@ -75,7 +75,7 @@ namespace cv {
 			if (shape == 9) {
 				return inp;
 			}
-			else if (shape == 12) {
+			else  {
 				cv::Mat arr1 = cv::Mat::ones(inp.size(), CV_64F);
 				cv::Mat arr_out(inp.size(), CV_64FC4);
 				cv::Mat arr_channels[3];
