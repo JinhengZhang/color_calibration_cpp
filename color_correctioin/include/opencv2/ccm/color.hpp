@@ -78,6 +78,7 @@ namespace cv {
 				default:
 					break;
 				}
+				return Mat();
 			}
 
 			void get_gray(double JDN = 2.0) {

@@ -1,4 +1,4 @@
-#include "ccm.hpp"
+#include "precomp.hpp"
 
 namespace cv {
 	namespace ccm {

@@ -183,29 +183,24 @@ namespace cv {
             {
             case cv::ccm::IDENTITY_:
                 p = new Linear_identity();
-                return p;
                 break;
             case cv::ccm::GAMMA:
                 p = new Linear_gamma(gamma);
-                return p;
                 break;
             case cv::ccm::COLORPOLYFIT:
                 p = new Linear_color<Polyfit>(deg, src, dst, mask, cs);
-                return p;
                 break;
             case cv::ccm::COLORLOGPOLYFIT:
                 p = new Linear_color<LogPolyfit>(deg, src, dst, mask, cs);
-                return p;
                 break;
             case cv::ccm::GRAYPOLYFIT:
                 p = new Linear_gray<Polyfit>(deg, src, dst, mask, cs);
-                return p;
                 break;
             case cv::ccm::GRAYLOGPOLYFIT:
                 p = new Linear_gray<LogPolyfit>(deg, src, dst, mask, cs);
-                return p;
                 break;
             }
+            return p;
         };
     }
 }

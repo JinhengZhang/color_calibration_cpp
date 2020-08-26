@@ -1,4 +1,4 @@
-#include "precomp.hpp"
+#include "opencv2/ccm.hpp"
 
 using namespace cv;
 using namespace std;
