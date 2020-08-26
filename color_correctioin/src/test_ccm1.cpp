@@ -1,4 +1,4 @@
-#include "ccm.h"
+#include "precomp.hpp"
 
 using namespace cv;
 using namespace std;
@@ -37,39 +37,39 @@ void test(int tag) {
 	std::string filename = "input1.png";
 		
 
-	//ColorCorrectionModel_3x3 p1(s/255, color, sRGB, CIE2000, GAMMA, 2.2, 3,
-	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4);
-	//ColorCorrectionModel_4x3 p2(s / 255, color, AdobeRGB, CIE2000, GAMMA, 2.2, 3,
-	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4);
-	//ColorCorrectionModel_4x3 p3(s / 255, color, WideGamutRGB, CIE2000, GRAYPOLYFIT, 2.2, 3,
-	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4);
-	//ColorCorrectionModel_3x3 p4(s / 255, color, ProPhotoRGB, RGBL, GRAYLOGPOLYFIT, 2.2, 3,
-	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4);
-	//ColorCorrectionModel_3x3 p5(s / 255, color, DCI_P3_RGB, RGB, IDENTITY_, 2.2, 3,
-	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4);
-	//ColorCorrectionModel_3x3 p6(s / 255, color, AppleRGB, CIE2000, COLORPOLYFIT, 2.2, 2,
-	//	saturated_threshold, weight_list, 2, LEAST_SQUARE, 5000, 1e-4);
-	ColorCorrectionModel_3x3 p7(s / 255, color, REC_2020_RGB, CIE94_GRAPHIC_ARTS, COLORLOGPOLYFIT, 2.2, 3,
-		saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4);
+	ColorCorrectionModel p1(s/255, color, sRGB, CIE2000, GAMMA, 2.2, 3,
+		saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4, 9);
+	//ColorCorrectionModel p2(s / 255, color, AdobeRGB, CIE2000, GAMMA, 2.2, 3,
+	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4, 12);
+	//ColorCorrectionModel p3(s / 255, color, WideGamutRGB, CIE2000, GRAYPOLYFIT, 2.2, 3,
+	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4, 12);
+	//ColorCorrectionModel p4(s / 255, color, ProPhotoRGB, RGBL, GRAYLOGPOLYFIT, 2.2, 3,
+	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4, 9);
+	//ColorCorrectionModel p5(s / 255, color, DCI_P3_RGB, RGB, IDENTITY_, 2.2, 3,
+	//	saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4, 9);
+	//ColorCorrectionModel p6(s / 255, color, AppleRGB, CIE2000, COLORPOLYFIT, 2.2, 2,
+	//	saturated_threshold, weight_list, 2, LEAST_SQUARE, 5000, 1e-4, 9);
+	//ColorCorrectionModel p7(s / 255, color, REC_2020_RGB, CIE94_GRAPHIC_ARTS, COLORLOGPOLYFIT, 2.2, 3,
+		//saturated_threshold, weight_list, 0, LEAST_SQUARE, 5000, 1e-4, 9);
 
 
-	//std::cout <<"ccm1"<< p1.ccm << std::endl;
+	std::cout <<"ccm1"<< p1.ccm << std::endl;
 	//std::cout << "ccm2" << p2.ccm << std::endl;
 	//std::cout << "ccm3" << p3.ccm << std::endl;
 	//std::cout << "ccm4" << p4.ccm << std::endl;
 	//std::cout << "ccm5" << p5.ccm << std::endl;
 	//std::cout << "ccm6" << p6.ccm << std::endl;
-	std::cout << "ccm7" << p7.ccm << std::endl;
+	//std::cout << "ccm7" << p7.ccm << std::endl;
 	//std::cout << "ccm" << p.dst.colors << std::endl;
 
 
-	//Mat img1 = p1.infer_image(filename);
+	Mat img1 = p1.infer_image(filename);
 	//Mat img2 = p2.infer_image(filename);
 	//Mat img3 = p3.infer_image(filename);
 	//Mat img4 = p4.infer_image(filename);
 	//Mat img5 = p5.infer_image(filename, true);
 	//Mat img6 = p6.infer_image(filename);
-	Mat img7 = p7.infer_image(filename);
+	//Mat img7 = p7.infer_image(filename);
 	//imwrite("output.png", img);
 }
 

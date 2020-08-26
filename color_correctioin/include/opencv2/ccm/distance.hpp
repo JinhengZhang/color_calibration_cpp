@@ -1,15 +1,11 @@
-#pragma once
-//#include <string>
-//#include <iostream>
+#ifndef DISTANCE_H
+#define DISTANCE_H
+
 #include <opencv2/opencv.hpp>
-#include "utils.h"
-//#include <map>
-//#include <tuple>
-//#include <cmath>
+#include "opencv2/ccm/utils.hpp"
 
 namespace cv {
 	namespace ccm {
-
 		enum DISTANCE_TYPE {
 			CIE76,
 			CIE94_GRAPHIC_ARTS,
@@ -119,21 +115,21 @@ namespace cv {
 			//double delta_H;
 
 			//delta_H_apo = 2.0 * sqrt(C1 * C2) * sin(delta_h_apo / 2.0);
-			double T = 1.0 - 0.17 * cos(H_bar_apo - to_rad(30.)) + 0.24 * cos(2.0 * H_bar_apo) + 0.32 * cos(3.0 * H_bar_apo + to_rad(6.0)) - 0.2 * cos(4.0 * H_bar_apo - to_rad(63.0));
+			double T = 1.0 - 0.17 * cos(H_bar_apo - to_rad(30.)) + 0.24 * cos(2.0 * H_bar_apo) + 
+				0.32 * cos(3.0 * H_bar_apo + to_rad(6.0)) - 0.2 * cos(4.0 * H_bar_apo - to_rad(63.0));
 			double sC = 1.0 + 0.045 * C_bar_apo;
 			double sH = 1.0 + 0.015 * C_bar_apo * T;
 			double sL = 1.0 + ((0.015 * pow(l_bar_apo - 50.0, 2.0)) / sqrt(20.0 + pow(l_bar_apo - 50.0, 2.0)));
 			double RT = -2.0 * G * sin(to_rad(60.0) * exp(-pow((H_bar_apo - to_rad(275.0)) / to_rad(25.0), 2.0)));
-			double res = (pow(delta_L_apo / (kL * sL), 2.0) + pow(delta_C_apo / (kC * sC), 2.0) + pow(delta_H_apo / (kH * sH), 2.0) + RT * (delta_C_apo / (kC * sC)) * (delta_H_apo / (kH * sH)));
+			double res = (pow(delta_L_apo / (kL * sL), 2.0) + pow(delta_C_apo / (kC * sC), 2.0) + 
+				pow(delta_H_apo / (kH * sH), 2.0) + RT * (delta_C_apo / (kC * sC)) * (delta_H_apo / (kH * sH)));
 			//return  sqrt(res);
 			return res > 0 ? sqrt(res) : 0;
 		}
 
-
 		double delta_ciede2000(Vec3d lab1, Vec3d lab2) {
 			return delta_ciede2000_(lab1, lab2);
 		}
-
 
 		double delta_cmc(Vec3d lab1, Vec3d lab2, double kL = 1, double kC = 1) {
 			double dL = lab2[0] - lab1[0];
@@ -228,3 +224,6 @@ namespace cv {
 //double deltacE_ciede94(const LAB& lab1, const LAB& lab2, double kH, double kC, double kL, double k1, double);
 
 //double deltacE_ciede2000(const LAB& lab1, const LAB& lab2, double kL, double kC, double kH);
+
+
+#endif

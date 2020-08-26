@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IO_H
+#define IO_H
 
 #include <string>
 #include <iostream>
@@ -14,21 +15,18 @@ namespace cv {
 			std::string illuminant;
 			std::string observer;
 			IO() {};
-			IO(std::string illuminant, std::string observer) :illuminant(illuminant), observer(observer) { out(); };
-			bool operator<(const IO& other)const {
-				return (illuminant < other.illuminant || ((illuminant == other.illuminant) && (observer < other.observer)));
+			IO(std::string illuminant, std::string observer) :illuminant(illuminant), observer(observer) {};
+			virtual ~IO() {};
+
+			bool operator<(const IO& other)const { 
+				return (illuminant < other.illuminant || ((illuminant == other.illuminant) && (observer < other.observer))); 
 			}
-			bool operator==(const IO& other) const {
+			bool operator==(const IO& other) const{
 				return illuminant == other.illuminant && observer == other.observer;
 			};
-			bool out() {
-				std::string s = "_";
-				std::cout << illuminant + s + observer << std::endl;
-				return true;
-			}
 		};
 
-		static const IO A_2("A", "2"), A_10("A", "10"),
+		static IO A_2("A", "2"), A_10("A", "10"),
 			D50_2("D50", "2"), D50_10("D50", "10"),
 			D55_2("D55", "2"), D55_10("D55", "10"),
 			D65_2("D65", "2"), D65_10("D65", "10"),
@@ -46,7 +44,7 @@ namespace cv {
 
 		std::vector<double> xyY2XYZ(std::vector<double> xyY) {
 			double Y = xyY.size() >= 3 ? xyY[2] : 1;
-			return { Y * xyY[0] / xyY[1],Y,Y / xyY[1] * (1 - xyY[0] - xyY[1]) };
+			return { Y*xyY[0]/xyY[1],Y,Y/xyY[1]*(1-xyY[0]-xyY[1]) };
 		}
 
 		std::map <IO, std::vector<double>> get_illuminant() {
@@ -56,9 +54,6 @@ namespace cv {
 
 				illuminants[it->first] = xyY2XYZ(it->second);
 			}
-			illuminants[D65_2] = { 0.95047, 1., 1.08883 };
-			illuminants[D65_10] = { 0.94811, 1., 1.07304 };
-
 			return illuminants;
 		}
 
@@ -66,3 +61,6 @@ namespace cv {
 
 	}
 }
+
+
+#endif

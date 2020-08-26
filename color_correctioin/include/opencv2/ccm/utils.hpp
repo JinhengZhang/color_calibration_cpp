@@ -1,4 +1,6 @@
-#pragma once
+#ifndef UTILS_H
+#define UTILS_H
+
 #include <functional>
 #include <vector>
 #include "opencv2\core\core.hpp"
@@ -13,15 +15,14 @@ namespace cv {
         template<typename F>
         Mat _elementwise(Mat src, F&& lambda) {
             Mat dst = src.clone();
-            const int channels = src.channels();
-            switch (channels)
+            const int channel = src.channels();
+            switch (channel)
             {
             case 1:
             {
                 MatIterator_<double> it, end;
-                for (it = dst.begin<double>(), end = dst.end<double>(); it != end; ++it) {
+                for (it = dst.begin<double>(), end = dst.end<double>(); it != end; ++it)
                     (*it) = lambda((*it));
-                }
                 break;
             }
             case 3:
@@ -30,14 +31,13 @@ namespace cv {
                 for (it = dst.begin<Vec3d>(), end = dst.end<Vec3d>(); it != end; ++it) {
                     for (int j = 0; j < 3; j++) {
                         (*it)[j] = lambda((*it)[j]);
-                    };
+                    }
                 }
-                break;
             }
             }
             return dst;
         }
-
+     
         template<typename F>
         Mat _channelwise(Mat src, F&& lambda) {
             Mat dst = src.clone();
@@ -69,18 +69,17 @@ namespace cv {
             return _elementwise(src, [gamma](double element)->double {return _gamma_correction(element, gamma); });
         }
 
-        
         Mat mask_copyto(Mat src, Mat mask) {
             Mat dst(countNonZero(mask), 1, src.type());
-            const int channels = src.channels();
+            const int channel = src.channels();
             auto it_mask = mask.begin<uchar>(), end_mask = mask.end<uchar>();
-            switch (channels)
+            switch (channel)
             {
             case 1:
             {
                 auto it_src = src.begin<double>(), end_src = src.end<double>();
                 auto it_dst = dst.begin<double>(), end_dst = dst.end<double>();
-                for (; it_src != end_src; ++it_src, ++it_mask) {
+                for (; it_src != end_src; it_src++, it_mask++) {
                     if (*it_mask) {
                         (*it_dst) = (*it_src);
                         ++it_dst;
@@ -90,18 +89,17 @@ namespace cv {
             }
             case 3:
             {
-                auto it_src = src.begin<Vec3d>(), end_src = src.end<Vec3d>();                
+                auto it_src = src.begin<Vec3d>(), end_src = src.end<Vec3d>();
                 auto it_dst = dst.begin<Vec3d>(), end_dst = dst.end<Vec3d>();
-                for (; it_src != end_src; ++it_src, ++it_mask) {
+                for (; it_src != end_src; it_src++, it_mask++) {
                     if (*it_mask) {
                         (*it_dst) = (*it_src);
                         ++it_dst;
                     }
                 }
-                break;
             }
-            }           
-            return dst;            
+            }
+            return dst;
         }
 
         Mat multiple(Mat xyz, Mat ccm) {
@@ -111,12 +109,6 @@ namespace cv {
             return res;
         }
 
-        //Mat multiple2(Mat xyz, Mat ccm) {
-        //    Mat tmp = xyz.reshape(1, xyz.rows * xyz.cols);
-        //    Mat res = tmp * ccm;
-        //    //res = res.reshape(3, xyz.rows);
-        //    return res;
-        //}
         void print(Mat m, std::string s) {
             std::cout << s << m << std::endl;
             std::cout << s << m.size() << std::endl;
@@ -142,6 +134,8 @@ namespace cv {
         Mat rgb2gray(Mat rgb) {
             return multiple(rgb, M_gray);
         }
-
     }
 }
+
+
+#endif

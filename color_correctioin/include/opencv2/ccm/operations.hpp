@@ -1,8 +1,10 @@
-#pragma once
+#ifndef OPERATIONS_H
+#define OPERATIONS_H
+
 #include <functional>
 #include <vector>
 #include "opencv2\core\core.hpp"
-#include "utils.h"
+#include "opencv2/ccm/utils.hpp"
 
 namespace cv {
 	namespace ccm {
@@ -15,8 +17,10 @@ namespace cv {
 			cv::Mat M;
 			MatFunc f;
 			Operation() : linear(true), M(Mat()) {};
-			Operation(Mat M) :linear(true), M{ M } {};
+			Operation(Mat M) :linear(true), M( M ) {};
 			Operation(MatFunc f) : linear(false), f(f) {};
+			virtual ~Operation() {};
+
 			Mat operator()(Mat& abc) {
 				if (!linear) { return f(abc); }
 				if (M.empty()) { return abc; }
@@ -30,18 +34,21 @@ namespace cv {
 					M = M * other.M;
 				}
 			};
-			void clear(void) {
+			void clear() {
 				M = Mat();
+		
 			};
 		};
 
-		Operation identity_op([](Mat x) {return x; });
+		Operation identity_op( [](Mat x) {return x; } );
 
 		class Operations {
 		public:
 			std::vector<Operation> ops;
 			Operations() :ops{ } {};
 			Operations(std::initializer_list<Operation> op) :ops{ op } {};
+			virtual ~Operations() {};
+
 			Operations& add(const Operations& other) {
 				ops.insert(ops.end(), other.ops.begin(), other.ops.end());
 				return *this;
@@ -59,7 +66,6 @@ namespace cv {
 					}
 				}
 				abc = hd(abc);
-				hd.clear();
 				return abc;
 			};
 		};
@@ -67,3 +73,6 @@ namespace cv {
 		Operations identity{ identity_op };
 	}
 }
+
+
+#endif

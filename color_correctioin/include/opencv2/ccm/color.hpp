@@ -1,8 +1,9 @@
-#pragma once
-#pragma once
-#include "colorspace.h"
-#include "distance.h"
-#include "utils.h"
+#ifndef COLOR_H
+#define COLOR_H
+
+#include "opencv2/ccm/colorspace.hpp"
+#include "opencv2/ccm/distance.hpp"
+#include "opencv2/ccm/utils.hpp"
 #include <map>
 
 namespace cv {
@@ -17,21 +18,23 @@ namespace cv {
 			std::map<ColorSpace, Color*> _history;
 
 			Color(Mat colors, ColorSpace& cs) :colors(colors), cs(cs) {};
+			virtual ~Color() {};
 
 			Color to(ColorSpace& other, CAM method = BRADFORD, bool save = true) {
-				/*	if (_history.count(other) == 1) {
-						return *_history[other];
-					}*/
+				if (_history.count(other) == 1) {
+
+					return *_history[other];
+				}
 				if (cs.relate(other)) {
 					return Color(cs.relation(other).run(colors), other);
 				}
 				Operations ops;
 				ops.add(cs.to).add(XYZ(cs.io).cam(other.io, method)).add(other.from);
-				Color color(ops.run(colors), other);
-				//if (save) {
-				//	_history[other] = &color;
-				//}
-				return color;
+				Color* color = new Color(ops.run(colors), other);
+				if (save) {
+					_history[other] = color;
+				}
+				return *color;
 			}
 
 			Mat channel(Mat M, int i) {
@@ -55,7 +58,7 @@ namespace cv {
 			}
 
 			Mat diff(Color& other, IO io, DISTANCE_TYPE method = CIE2000) {
-				Lab lab_(io);
+				Lab lab(io);
 				switch (method)
 				{
 				case cv::ccm::CIE76:
@@ -64,7 +67,7 @@ namespace cv {
 				case cv::ccm::CIE2000:
 				case cv::ccm::CMC_1TO1:
 				case cv::ccm::CMC_2TO1:
-					return distance(to(lab_).colors, other.to(lab_).colors, method);
+					return distance(to(lab).colors, other.to(lab).colors, method);
 					break;
 				case cv::ccm::RGB:
 					return distance(to(*cs.nl).colors, other.to(*cs.nl).colors, method);
@@ -90,8 +93,8 @@ namespace cv {
 			Color operator[](Mat mask) {
 				return Color(mask_copyto(colors, mask), cs);
 			}
-			Color operator=(Color color) {
-				return color;
+			Color operator=(Color inp) {
+				return inp;
 			}
 		};
 
@@ -152,3 +155,6 @@ namespace cv {
 
 	}
 }
+
+
+#endif
